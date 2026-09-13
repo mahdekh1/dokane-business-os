@@ -1,0 +1,137 @@
+// Dokane Business OS — Prisma schema.
+// Phase 1 (Task 1.1): platform & identity core. Tenant-owned module tables are
+// added in their own phases. See docs/DATA_MODEL.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum BusinessStatus {
+  PENDING_APPROVAL
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum RoleScope {
+  PLATFORM
+  BUSINESS
+}
+
+enum MembershipStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  firstName    String
+  lastName     String
+  phone        String?
+  passwordHash String
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  BusinessMembership[]
+
+  @@map("users")
+}
+
+model Business {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String   @unique
+  businessType String?
+  phone        String?
+  email        String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  postalCode   String?
+  country      String?
+  currency     String   @default("USD")
+  timezone     String   @default("UTC")
+  status       BusinessStatus @default(PENDING_APPROVAL)
+  logoKey      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  BusinessMembership[]
+  roles        Role[]
+
+  @@map("businesses")
+}
+
+model BusinessMembership {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  userId     String   @db.Uuid
+  roleId     String   @db.Uuid
+  status     MembershipStatus @default(ACTIVE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business   Business @relation(fields: [businessId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  role       Role     @relation(fields: [roleId], references: [id])
+
+  @@unique([businessId, userId])
+  @@index([businessId, userId])
+  @@map("business_memberships")
+}
+
+// A role is either a system BUSINESS/PLATFORM role (businessId = null) or a
+// tenant-custom role (businessId set). A membership may only reference a system
+// BUSINESS role or a custom role of the SAME business (enforced in RBAC service).
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String?  @db.Uuid
+  name        String
+  scope       RoleScope
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business    Business? @relation(fields: [businessId], references: [id])
+  permissions RolePermission[]
+  memberships BusinessMembership[]
+
+  @@index([businessId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  moduleId    String
+  description String?
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}

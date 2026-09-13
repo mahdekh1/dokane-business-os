@@ -18,6 +18,14 @@
     "@types/node": "^20.14.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "@nestjs/core", "msgpackr-extract"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@nestjs/core",
+      "msgpackr-extract",
+      "argon2",
+      "prisma",
+      "@prisma/client",
+      "@prisma/engines"
+    ]
   }
 }
