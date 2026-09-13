@@ -20,6 +20,11 @@ export const PERMISSION_KEY = 'requirePermission';
 export const RequirePermission = (code: string): MethodDecorator & ClassDecorator =>
   SetMetadata(PERMISSION_KEY, code);
 
+/** Requires the tenant to be entitled to a module (plan/add-on). */
+export const ENTITLEMENT_KEY = 'requireEntitlement';
+export const RequireEntitlement = (key: string): MethodDecorator & ClassDecorator =>
+  SetMetadata(ENTITLEMENT_KEY, key);
+
 /** Injects the resolved TenantContext into a handler parameter. */
 export const Ctx = createParamDecorator(
   (_data: unknown, context: ExecutionContext): TenantContext =>

@@ -135,3 +135,110 @@ model RolePermission {
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
+
+// ---- Packaging & modules (Task 1.5) ----
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+}
+
+model Plan {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String
+  tier   String  @unique // STARTER | GROWTH | BUSINESS | ENTERPRISE
+  active Boolean @default(true)
+
+  entitlements  PlanEntitlement[]
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Entitlement {
+  id          String  @id @default(uuid()) @db.Uuid
+  key         String  @unique
+  name        String
+  description String?
+
+  plans  PlanEntitlement[]
+  addons AddonEntitlement[]
+
+  @@map("entitlements")
+}
+
+model PlanEntitlement {
+  planId        String @db.Uuid
+  entitlementId String @db.Uuid
+
+  plan        Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+
+  @@id([planId, entitlementId])
+  @@map("plan_entitlements")
+}
+
+model Subscription {
+  id         String             @id @default(uuid()) @db.Uuid
+  businessId String             @unique @db.Uuid // one active subscription per business (MVP)
+  planId     String             @db.Uuid
+  status     SubscriptionStatus @default(ACTIVE)
+  startedAt  DateTime           @default(now())
+  renewsAt   DateTime?
+
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model AddonEntitlement {
+  id            String @id @default(uuid()) @db.Uuid
+  businessId    String @db.Uuid
+  entitlementId String @db.Uuid
+
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, entitlementId])
+  @@map("addon_entitlements")
+}
+
+model ModuleState {
+  id         String    @id @default(uuid()) @db.Uuid
+  businessId String    @db.Uuid
+  moduleId   String
+  enabled    Boolean   @default(false)
+  enabledAt  DateTime?
+
+  @@unique([businessId, moduleId])
+  @@map("module_states")
+}
+
+// ---- Transactional outbox (Task 1.6) ----
+
+model OutboxEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  topic       String
+  payload     Json
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([processedAt, createdAt])
+  @@map("outbox_events")
+}
+
+// ---- Audit (Task 1.7) ----
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String?  @db.Uuid
+  actorUserId String?  @db.Uuid
+  actorType   String
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([businessId, createdAt])
+  @@map("audit_logs")
+}

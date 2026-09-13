@@ -6,6 +6,7 @@ module.exports = {
   testRegex: '\\.e2e-spec\\.ts$',
   moduleNameMapper: {
     '^@dokane/contracts$': '<rootDir>/../../packages/contracts/src/index.ts',
+    '^@dokane/module-sdk$': '<rootDir>/../../packages/module-sdk/src/index.ts',
   },
   setupFiles: ['<rootDir>/test/setup-env.ts'],
   testTimeout: 30000,

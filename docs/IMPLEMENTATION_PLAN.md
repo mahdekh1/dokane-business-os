@@ -348,7 +348,13 @@ can enable a module; enabling activates its permissions/nav.
 pnpm --filter api test registry
 ```
 **Sync:** `be/01-module-sdk` → PR → merge.
-- [ ] Registry + entitlement tests pass
+- [x] Registry + entitlement tests pass ✅ (2026-09-13: `ModuleManifest` in
+  module-sdk; entitlements/plans/plan_entitlements/subscriptions/addons/
+  module_states migrated + seeded (Starter/Growth/Business/Enterprise);
+  `GET /modules` active/available/locked; `POST /modules/:id/enable` checks
+  permission + entitlement + dependsOn; EntitlementGuard + @RequireEntitlement
+  wired (inert until feature routes use it). Tests cover lock/available/active,
+  not-entitled refusal, dependency order, audit write.)
 
 ### Task 1.6 — Event bus + transactional outbox
 **Owner:** Claude CLI · **Files:** `apps/api/src/common/events/*`,
@@ -381,7 +387,11 @@ it('does not deliver events from a rolled-back transaction', async () => {
 pnpm --filter api test events && pnpm --filter worker test relay
 ```
 **Sync:** `be/01-events` → PR → merge.
-- [ ] Outbox exactly-once + rollback tests pass
+- [x] Outbox exactly-once + rollback tests pass ✅ (2026-09-13: `EventBus.emit(tx,…)`
+  writes an `outbox_events` row in the caller's transaction; `DomainEvents`
+  registry; `OutboxRelay.processPending()` dispatches + marks processed
+  (poller disabled under tests). Verified: rolled-back tx delivers nothing;
+  committed tx delivers exactly once.)
 
 ### Task 1.7 — Audit foundation
 **Owner:** Claude CLI · **Files:** `apps/api/src/modules/audit/*`, `audit_logs`
@@ -396,7 +406,9 @@ subscribers write audit rows for security-sensitive events.
 > be updated via the service.
 **Verify:** `pnpm --filter api test audit`
 **Sync:** `be/01-audit` → PR → merge.
-- [ ] Audit tests pass
+- [x] Audit tests pass ✅ (2026-09-13: append-only `AuditService.record` with
+  secret-key redaction; wired to MODULE_ENABLED and ROLE_CREATED. Verified: row
+  written, secrets redacted, no update/delete path.)
 
 ### Task 1.8 — App shells (console, admin) + auth UI
 **Owner:** Lovable · **Files:** `apps/web/app/(auth)/*`, `apps/web/app/(app)/*`,

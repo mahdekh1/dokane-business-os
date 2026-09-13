@@ -6,6 +6,7 @@ import {
 import type { CreateRoleInput, RoleDto } from '@dokane/contracts';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { TenantContext } from '../../common/tenant-context';
+import { AuditService } from '../audit/audit.service';
 import {
   ALL_PERMISSIONS,
   CORE_PERMISSIONS,
@@ -15,7 +16,10 @@ import {
 
 @Injectable()
 export class RbacService implements OnModuleInit {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.ensureSystem();
@@ -115,6 +119,15 @@ export class RbacService implements OnModuleInit {
         },
       },
       include: { permissions: { include: { permission: true } } },
+    });
+    await this.audit.record({
+      businessId: ctx.businessId,
+      actorUserId: ctx.userId,
+      actorType: 'USER',
+      action: 'ROLE_CREATED',
+      entityType: 'role',
+      entityId: role.id,
+      metadata: { name: role.name, permissions: input.permissions },
     });
     return {
       id: role.id,
