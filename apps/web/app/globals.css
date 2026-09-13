@@ -1,3 +1,75 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---- Dokane platform brand kit ------------------------------------------
+   Edit these tokens (or drive them from the platform branding settings) to
+   re-skin the whole console. Business mini-sites use per-business branding. */
+:root {
+  --brand: #0E6A57;
+  --brand-2: #0A5344;
+  --on-brand: #EAF3EF;
+  --accent: #D98E4B;
+  --canvas: #F3F2ED;
+  --surface: #FFFFFF;
+  --field: #F5F4EF;
+  --ink: #17150F;
+  --muted: #6F6A60;
+  --border: #E4DFD5;
+  --border-strong: #D8D2C5;
+  --nav: #0E100E;
+  --ring: rgba(14, 106, 87, 0.30);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand: #12907A;
+    --brand-2: #0B5F4E;
+    --on-brand: #EAF3EF;
+    --accent: #E0A75E;
+    --canvas: #0C0D0B;
+    --surface: #151611;
+    --field: #1E1F1A;
+    --ink: #ECE8E0;
+    --muted: #9A948A;
+    --border: #2A2B26;
+    --border-strong: #3A3B35;
+    --nav: #101210;
+    --ring: rgba(18, 144, 122, 0.40);
+  }
+}
+
+:root[data-theme="dark"] {
+  --brand: #12907A;
+  --brand-2: #0B5F4E;
+  --on-brand: #EAF3EF;
+  --accent: #E0A75E;
+  --canvas: #0C0D0B;
+  --surface: #151611;
+  --field: #1E1F1A;
+  --ink: #ECE8E0;
+  --muted: #9A948A;
+  --border: #2A2B26;
+  --border-strong: #3A3B35;
+  --nav: #101210;
+  --ring: rgba(18, 144, 122, 0.40);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+  border-radius: 6px;
+}

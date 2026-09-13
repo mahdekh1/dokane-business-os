@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './common/events/events.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { MeModule } from './modules/me/me.module';
 import { RbacModule } from './modules/rbac/rbac.module';
 import { RegistryModule } from './modules/registry/registry.module';
 import { BusinessesModule } from './modules/businesses/businesses.module';
@@ -22,6 +23,7 @@ import { HealthController } from './health.controller';
     EventsModule,
     AuditModule,
     AuthModule,
+    MeModule,
     RbacModule,
     RegistryModule,
     BusinessesModule,

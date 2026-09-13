@@ -3,6 +3,8 @@ import * as argon2 from 'argon2';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 import { EntitlementService } from './modules/registry/entitlement.service';
+import { RegistryService } from './modules/registry/registry.service';
+import type { TenantContext } from './common/tenant-context';
 
 /**
  * Idempotent dev seed. Boots the app context so system roles/permissions and
@@ -70,6 +72,21 @@ async function main(): Promise<void> {
 
   await entitlements.assignPlan(bizA.id, 'GROWTH');
   await entitlements.assignPlan(bizB.id, 'STARTER');
+
+  // Enable a realistic set of modules for Business A (dependency-ordered) so the
+  // console nav is populated. Business B stays on Starter with nothing enabled.
+  const registry = app.get(RegistryService);
+  const ctxA: TenantContext = {
+    userId: ownerA.id,
+    businessId: bizA.id,
+    membershipId: '',
+    roleId: '',
+    businessStatus: 'APPROVED',
+    permissions: new Set(['modules.enable']),
+  };
+  for (const id of ['catalog', 'channels', 'inventory', 'online_store', 'crm', 'accounting']) {
+    await registry.enable(ctxA, id).catch(() => undefined);
+  }
 
   // eslint-disable-next-line no-console
   console.log(

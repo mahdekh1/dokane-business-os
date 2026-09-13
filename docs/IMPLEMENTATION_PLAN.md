@@ -434,8 +434,13 @@ pnpm --filter web typecheck && pnpm --filter web test
 ```
 **Sync:** Lovable `ui/01-shell` → Claude reviews (no client-side authz decisions,
 nav server-driven) → merge `main`.
-- [ ] Shells render; nav is server-driven — **⏳ Lovable handoff task** (the only
-  Phase-1 item not done; all backend tasks 1.1–1.7 + the 1.9 gate are complete)
+- [x] Shells render; nav is server-driven ✅ (2026-09-13: built in `apps/web` by
+  Claude — auth pages, classic-sidebar console shell with nav from `GET /modules`
+  + business switcher setting `X-Business-Id`, and the platform-admin shell.
+  Added `GET /me` + CORS. Design system in [DESIGN.md](./DESIGN.md), Modern lane,
+  customizable platform brand kit. **Verified in the running app**: login as a
+  seeded owner → dashboard with 6 active modules in the nav; platform shell
+  renders. Built with Tailwind + tokens; shadcn can layer in later.)
 
 ### Task 1.9 — Seed + tenant-isolation test suite (Business A/B)
 **Owner:** Claude CLI · **Files:** `apps/api/prisma/seed.ts`,
@@ -461,6 +466,17 @@ fails.
   admin + Business A (GROWTH) + Business B (STARTER) with members. Added to CI.
   Scope note: the suite covers the endpoints that exist so far; each module adds
   its own A→B tests as it is built (Phase 3+), per SECURITY.md §8.)
+
+---
+
+## ✅ Phase 1 — COMPLETE (2026-09-13)
+
+Foundation done and verified against a live Postgres/Redis: Prisma schema + auth
+(argon2/JWT) + tenant guards + RBAC + module registry/entitlements + event
+bus/outbox + audit + seed + isolation gate (backend, 27 unit + 6 e2e tests), and
+the `apps/web` shell (auth, console with server-driven nav + business switcher,
+platform admin) verified in the running app. Design system in
+[DESIGN.md](./DESIGN.md).
 
 ---
 

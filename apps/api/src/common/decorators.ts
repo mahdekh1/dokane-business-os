@@ -30,3 +30,9 @@ export const Ctx = createParamDecorator(
   (_data: unknown, context: ExecutionContext): TenantContext =>
     context.switchToHttp().getRequest<{ tenant: TenantContext }>().tenant,
 );
+
+/** Injects the authenticated userId (set by AuthGuard) — no tenant required. */
+export const UserId = createParamDecorator(
+  (_data: unknown, context: ExecutionContext): string =>
+    context.switchToHttp().getRequest<{ userId: string }>().userId,
+);

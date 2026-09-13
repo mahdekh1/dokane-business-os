@@ -75,10 +75,13 @@ pnpm --filter @dokane/api migrate:dev   # prisma migrate dev
 
 ## Status (2026-09-13)
 
-Phase 0 ✅ (scaffold + CI). Phase 1 backend **complete**: 1.1 schema ✅ · 1.2 auth
-✅ · 1.3 tenant guards ✅ · 1.4 RBAC ✅ · 1.5 module registry + entitlements ✅ ·
-1.6 event bus + outbox ✅ · 1.7 audit ✅ · 1.9 seed + isolation gate ✅. **Only
-1.8 (app shells + auth UI) remains — Lovable's task** (see IMPLEMENTATION_PLAN.md
-Task 1.8). Dev logins after `pnpm --filter @dokane/api seed`: owner.a@dokane.test
-/ owner.b@dokane.test / staff.a@dokane.test (all `password123`). Next after 1.8:
-Phase 2.
+Phase 0 ✅ (scaffold + CI). **Phase 1 ✅ COMPLETE** (1.1–1.9): schema, auth, tenant
+guards, RBAC, module registry/entitlements, event bus/outbox, audit, seed +
+isolation gate, and the `apps/web` shell (auth pages, console with server-driven
+nav + business switcher, platform admin). Design system in `docs/DESIGN.md`
+(Modern lane, customizable platform brand kit; Tailwind + tokens). Dev logins
+after `pnpm --filter @dokane/api seed`: owner.a@dokane.test / owner.b@dokane.test
+/ staff.a@dokane.test (all `password123`). **Next: Phase 2** (onboarding,
+approval, Modules page UI, branding). Run the app: `docker compose up -d`, then
+api `pnpm --filter @dokane/api start` (:3001) + web `pnpm --filter @dokane/web dev`
+(:3000); the API needs `WEB_ORIGIN` for CORS.
