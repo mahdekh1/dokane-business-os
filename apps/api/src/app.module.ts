@@ -11,6 +11,7 @@ import { RbacModule } from './modules/rbac/rbac.module';
 import { RegistryModule } from './modules/registry/registry.module';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { AuthGuard } from './common/guards/auth.guard';
+import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { EntitlementGuard } from './modules/registry/entitlement.guard';
 import { HealthController } from './health.controller';
@@ -30,10 +31,11 @@ import { HealthController } from './health.controller';
   ],
   controllers: [HealthController],
   providers: [
-    // Global guard order: throttle → authenticate → resolve tenant + permission
-    // → entitlement.
+    // Global guard order: throttle → authenticate → platform admin → resolve
+    // tenant + permission → entitlement.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: PlatformGuard },
     { provide: APP_GUARD, useClass: TenantGuard },
     { provide: APP_GUARD, useClass: EntitlementGuard },
   ],

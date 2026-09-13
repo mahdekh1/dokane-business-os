@@ -25,6 +25,11 @@ export const ENTITLEMENT_KEY = 'requireEntitlement';
 export const RequireEntitlement = (key: string): MethodDecorator & ClassDecorator =>
   SetMetadata(ENTITLEMENT_KEY, key);
 
+/** Requires the caller to be a platform admin (global). `code` documents intent. */
+export const PLATFORM_PERMISSION_KEY = 'requirePlatformPermission';
+export const RequirePlatformPermission = (code: string): MethodDecorator & ClassDecorator =>
+  SetMetadata(PLATFORM_PERMISSION_KEY, code);
+
 /** Injects the resolved TenantContext into a handler parameter. */
 export const Ctx = createParamDecorator(
   (_data: unknown, context: ExecutionContext): TenantContext =>

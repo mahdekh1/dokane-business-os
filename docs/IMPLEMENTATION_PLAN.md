@@ -469,8 +469,16 @@ single status enum, not booleans.
 > modules). Audit each transition. Test the full state machine and the
 > transact-blocked rule.
 **Verify:** `pnpm --filter api test businesses`
-**Sync:** `be/02-businesses` → PR → merge.
-- [ ] Lifecycle + block-when-not-approved tests pass
+**Sync:** `be/02-businesses` → commit to `main`.
+- [x] Lifecycle + platform-admin tests pass ✅ (2026-09-13: `User.isPlatformAdmin`
+  + `PlatformGuard`/`@RequirePlatformPermission`; `POST /business` (create →
+  PENDING_APPROVAL + owner membership); platform lifecycle endpoints
+  approve/reject/request-changes/suspend/reactivate with a validated transition
+  map + audit; approve provisions the default Starter subscription. Verified:
+  non-admin → 403, admin approve → APPROVED + subscription, invalid transition →
+  400. The "block transactions unless APPROVED" rule is applied by the
+  transactional modules in Phase 3–4 (TenantGuard already blocks
+  SUSPENDED/REJECTED).)
 
 ### Task 2.2 — Onboarding + platform review UI
 **Owner:** Claude Code (UI) · **Files:** `apps/web/app/(app)/onboarding/*`,

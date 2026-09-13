@@ -34,10 +34,12 @@ async function main(): Promise<void> {
   const prisma = app.get(PrismaService);
   const entitlements = app.get(EntitlementService);
 
-  await upsertUser(prisma, 'admin@dokane.test', 'Platform', 'Admin');
+  const admin = await upsertUser(prisma, 'admin@dokane.test', 'Platform', 'Admin');
+  await prisma.user.update({ where: { id: admin.id }, data: { isPlatformAdmin: true } });
   const ownerA = await upsertUser(prisma, 'owner.a@dokane.test', 'Owner', 'A');
   const staffA = await upsertUser(prisma, 'staff.a@dokane.test', 'Staff', 'A');
   const ownerB = await upsertUser(prisma, 'owner.b@dokane.test', 'Owner', 'B');
+  const ownerC = await upsertUser(prisma, 'owner.c@dokane.test', 'Owner', 'C');
 
   const bizA = await prisma.business.upsert({
     where: { slug: 'abc-store' },
@@ -49,6 +51,14 @@ async function main(): Promise<void> {
     where: { slug: 'fashion-store' },
     create: { name: 'Fashion Store', slug: 'fashion-store', status: 'APPROVED' },
     update: { status: 'APPROVED' },
+    select: { id: true },
+  });
+
+  // A pending business for the platform admin to review.
+  const bizC = await prisma.business.upsert({
+    where: { slug: 'nour-pharmacy' },
+    create: { name: 'Nour Pharmacy', slug: 'nour-pharmacy', businessType: 'Clinic', status: 'PENDING_APPROVAL' },
+    update: {},
     select: { id: true },
   });
 
@@ -69,6 +79,7 @@ async function main(): Promise<void> {
   await link(bizA.id, ownerA.id, owner.id);
   await link(bizA.id, staffA.id, staff.id);
   await link(bizB.id, ownerB.id, owner.id);
+  await link(bizC.id, ownerC.id, owner.id);
 
   await entitlements.assignPlan(bizA.id, 'GROWTH');
   await entitlements.assignPlan(bizB.id, 'STARTER');
@@ -92,11 +103,13 @@ async function main(): Promise<void> {
   console.log(
     [
       'Seed complete (all passwords: password123):',
-      '  Platform admin : admin@dokane.test  (platform authz wiring is Task 2.1)',
-      `  Business A     : abc-store [GROWTH] ${bizA.id}`,
+      '  Platform admin : admin@dokane.test  (isPlatformAdmin)',
+      `  Business A     : abc-store [GROWTH, approved] ${bizA.id}`,
       '                   owner.a@dokane.test (OWNER), staff.a@dokane.test (STAFF)',
-      `  Business B     : fashion-store [STARTER] ${bizB.id}`,
+      `  Business B     : fashion-store [STARTER, approved] ${bizB.id}`,
       '                   owner.b@dokane.test (OWNER)',
+      `  Business C     : nour-pharmacy [PENDING_APPROVAL] ${bizC.id}`,
+      '                   owner.c@dokane.test (OWNER)',
     ].join('\n'),
   );
 
