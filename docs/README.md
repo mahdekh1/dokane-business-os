@@ -37,11 +37,12 @@ frame everything else.
 | [MINISITE.md](./MINISITE.md) | Public mini-site: four pages, brand theming, SEO |
 | [PROJECT_MGMT.md](./PROJECT_MGMT.md) | Projects & tasks, statuses |
 | [ROADMAP.md](./ROADMAP.md) | MVP scope and phased module rollout |
-| [DELIVERY.md](./DELIVERY.md) | Stack detail, Lovable/Claude Code split, required skills, environments, CI/CD |
+| [DELIVERY.md](./DELIVERY.md) | Stack detail, delivery model, required skills (incl. UI design skills), environments, CI/CD |
+| [DESIGN.md](./DESIGN.md) | Platform design system — Modern lane, customizable brand kit, shell layouts |
 | [TEST_PLAN.md](./TEST_PLAN.md) | Testing strategy across unit/integration/E2E/security |
 | [MVP_SCOPE.md](./MVP_SCOPE.md) | One-page consolidation of every MVP decision |
 | [POST_MVP_CHANGES.md](./POST_MVP_CHANGES.md) | MVP features built in reduced form, and what changes when we grow past the MVP |
-| [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | Detailed step-by-step build plan; Claude CLI ⇄ Lovable responsibility split, per-step prompts and sync commands |
+| [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | Detailed step-by-step build plan; per-task prompts, verification, and the UI design-skill workflow |
 | [DIAGRAMS.md](./DIAGRAMS.md) | Architecture diagrams and flows (Mermaid) |
 
 ## Authority
@@ -53,8 +54,10 @@ frame everything else.
 No document may be silently redefined by an implementation. Changes go through a
 pull request against these docs.
 
-## Delivery agents
+## Delivery
 
-Implementation is divided between **Lovable** (frontend scaffolding) and
-**Claude Code** (architecture, backend, security, framework). See
-[DELIVERY.md](./DELIVERY.md). No other coding agents are part of this plan.
+Built by **Claude Code** across the stack — backend and frontend. UI pages are
+built in `apps/web` with the design skills (`frontend-design`,
+`ui-ux-pro-max:ui-styling`; `artifact-design` for mockups) via a mock → approve →
+build loop. Design system: [DESIGN.md](./DESIGN.md). See
+[DELIVERY.md](./DELIVERY.md).

@@ -18,35 +18,44 @@ How the work is stacked, split between agents, staffed, and shipped.
 | Storage | Storage-driver abstraction | Local-disk driver (MVP) → S3 driver (ready) |
 | Auth | App-owned authorization; authn via robust app auth or managed provider | authn and authz stay separate |
 
-## 2. Agent responsibilities
+## 2. Delivery model
 
-Two coding agents. **No other coding agents are part of this plan.**
+**Claude Code builds the whole stack** — backend and frontend. There is no
+separate UI vendor. Work **contracts-first**: define the Zod contract in
+`packages/contracts` (plus the API endpoint and any migration) before the UI
+that consumes it, so the frontend is typed against a stable interface.
 
-### Lovable — frontend scaffolding
-- Next.js pages, module UI shells, forms and CRUD screens
-- Navigation, layouts, mini-site templates
-- Applying the design system / theming
-- Rapid iteration on flows and empty/loading/error states
-
-Lovable does **not** define the data model, security model, entitlement model, or
-business rules.
-
-### Claude Code — architecture, backend, correctness
+### Backend / framework
 - Architecture and the **module SDK / framework**
 - Backend/domain logic, DB schema + migrations
 - Tenancy, RBAC, entitlements, the event bus / queue / outbox
 - Transactions, idempotency, concurrency
 - Security, integrations, tests, code review, refactoring
 
-Rule of thumb: anything with **correctness, security, money, or tenant-isolation
-stakes** is Claude Code's; presentation and scaffolding are Lovable's.
+### Frontend (UI pages)
+Built directly in `apps/web` (Next.js App Router). **Invoke the design skills**
+so pages are production-grade, not generic:
+
+- **`frontend-design`** — aesthetic direction and quality (avoids "AI-slop" UIs).
+- **`ui-ux-pro-max:ui-styling`** — Tailwind + component implementation
+  (shadcn/ui when a primitive earns it).
+- **`ui-ux-pro-max` / `design-system`** — palettes, type pairings, tokens.
+- **`artifact-design`** — when publishing an interactive mock for approval.
+
+Follow the established system in [DESIGN.md](./DESIGN.md) (Modern lane; the
+platform brand kit lives as tokens in `apps/web/app/globals.css`). Workflow for
+any new UI: **mock → get user approval → build in `apps/web` → verify in the
+running app**. Nav and gating are always **server-driven** (from `GET /modules`
+and the guards) — never client-side authorization.
 
 ## 3. Required skills / roles
 
 - **Backend:** TypeScript, NestJS, Prisma/PostgreSQL, Redis/BullMQ, event-driven
   design, multi-tenancy, transactions & concurrency.
-- **Frontend:** Next.js App Router, React, TypeScript, Tailwind, i18n/RTL,
-  design systems, SEO.
+- **Frontend:** Next.js App Router, React, TypeScript, Tailwind, i18n/RTL, SEO.
+- **UI design (skills):** `frontend-design`, `ui-ux-pro-max:ui-styling`,
+  `ui-ux-pro-max` / `design-system`, `artifact-design` (for mockups) — used to
+  build every UI page to a production-grade bar against the DESIGN.md system.
 - **Platform / DevOps:** Docker, CI/CD, managed PostgreSQL, Redis, object
   storage (S3), observability.
 - **Security:** multi-tenant isolation, authorization, application security.

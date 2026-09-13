@@ -51,6 +51,8 @@ curl http://localhost:3001/health   # {"status":"ok"}
 
 ## Delivery
 
-Implementation is split between **Claude CLI** (architecture, backend, security,
-framework, tests) and **Lovable** (frontend scaffolding), working
-contracts-first. See [docs/DELIVERY.md](./docs/DELIVERY.md).
+Built by **Claude Code** across the whole stack — backend and frontend. UI pages
+are built directly in `apps/web` using the design skills (`frontend-design`,
+`ui-ux-pro-max:ui-styling`) via a mock → approve → build loop; the design system
+is recorded in [docs/DESIGN.md](./docs/DESIGN.md). See
+[docs/DELIVERY.md](./docs/DELIVERY.md).

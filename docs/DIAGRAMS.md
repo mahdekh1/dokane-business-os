@@ -202,18 +202,20 @@ flowchart LR
     EN --> WIRE[routes · nav · permissions · events · agent tools active]
 ```
 
-## 12. Lovable ⇄ Claude CLI delivery loop (contracts-first)
+## 12. Delivery loop (contracts-first, single builder)
 
 ```mermaid
-sequenceDiagram
-    participant C as Claude CLI
-    participant G as GitHub repo
-    participant L as Lovable
-    C->>G: define Zod contracts + API + migrations (feat/be-*), push
-    C->>G: open PR → main after tests + security review
-    G-->>L: Lovable "Sync from GitHub" (pull main)
-    L->>G: build UI against contracts (feat/ui-*), push
-    G-->>C: Claude pulls feat/ui-*, reviews security/perf, wires, tests
-    C->>G: merge to main
-    Note over C,L: main is the shared interface; contracts change only via Claude
+flowchart LR
+    K[Zod contract in packages/contracts] --> A[API endpoint + migration]
+    A --> V1[verify: tests / HTTP vs live DB]
+    V1 --> U{UI needed?}
+    U -- yes --> M[mock UI · design skills] --> OK{user approves?}
+    OK -- no --> M
+    OK -- yes --> B[build in apps/web against the contract]
+    B --> V2[verify in the running app]
+    U -- no --> V2
+    V2 --> C[commit to main]
 ```
+
+Contracts precede UI; nav and gating are server-driven (from `GET /modules` and
+the guards), never client-side.

@@ -74,10 +74,12 @@ Calendar · HR · **POS (infra/data-model only)** · **Payments & Invoices
 
 ## Delivery
 
-Lovable = frontend scaffolding. Claude CLI (Claude Code) = architecture, backend,
-security, framework, tests. No other coding agents. Contracts-first: Claude
-defines Zod contracts + API, Lovable builds UI against them. See
-[DELIVERY.md](./DELIVERY.md) and [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md).
+**Claude Code** builds the whole stack — architecture, backend, security,
+framework, tests, and frontend. Contracts-first (define Zod contracts + API
+before the UI). UI pages are built in `apps/web` with the design skills
+(`frontend-design`, `ui-ux-pro-max:ui-styling`) via mock → approve → build; the
+design system is in [DESIGN.md](./DESIGN.md). See [DELIVERY.md](./DELIVERY.md)
+and [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md).
 
 ## Definition of done
 

@@ -153,8 +153,7 @@ transaction boundaries; repositories own data access. See
 | Storage | Object storage via a driver abstraction (local-disk driver for MVP, S3 driver ready) |
 | Auth | Application-owned authorization; authentication via robust app auth or a managed provider — authn and authz stay separate concepts |
 
-Stack rationale and the Lovable/Claude Code split are in
-[DELIVERY.md](./DELIVERY.md).
+Stack rationale and the delivery model are in [DELIVERY.md](./DELIVERY.md).
 
 ---
 

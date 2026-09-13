@@ -62,11 +62,15 @@ pnpm --filter @dokane/api migrate:dev   # prisma migrate dev
 
 ## Delivery workflow
 
-- Two tools: **Claude Code** (architecture, backend, security, framework, tests)
-  and **Lovable** (frontend scaffolding), **contracts-first** — Claude ships the
-  Zod contract + API + migration, then Lovable builds UI against it. Lovable never
-  edits `packages/contracts`, `apps/api`, Prisma schema/migrations, or auth/rbac/
-  tenancy. See [docs/DELIVERY.md](./docs/DELIVERY.md).
+- **Claude Code builds the whole stack** — backend and frontend. Keep it
+  contracts-first: define the Zod contract in `packages/contracts` (+ API +
+  migration) before the UI that consumes it.
+- **UI pages** are built directly in `apps/web`. Invoke the design skills —
+  `frontend-design` (approach/quality) + `ui-ux-pro-max:ui-styling` (Tailwind/
+  components), and `artifact-design` for any published mock — and follow the
+  established design system in `docs/DESIGN.md` (Modern lane, brand-kit tokens in
+  `apps/web/app/globals.css`). For new UI, mock → get approval → build. See
+  [docs/DELIVERY.md](./docs/DELIVERY.md).
 - **Commit directly to `main`** for now (single builder). End commit messages with
   the `Co-Authored-By: Claude` trailer. Push over SSH (`git@github.com:...`).
 - **Verify behavior, not just types** — run the real tests/HTTP against the live DB
