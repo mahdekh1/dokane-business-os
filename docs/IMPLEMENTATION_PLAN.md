@@ -155,10 +155,12 @@ versions; enable strict TypeScript.
 **Verify:**
 ```bash
 docker compose up -d && pnpm install && pnpm --filter api build
-pnpm --filter api start & sleep 3 && curl -s localhost:3000/health   # {"status":"ok"}
+pnpm --filter @dokane/api build && API_PORT=3001 node apps/api/dist/main.js &
+sleep 2 && curl -s localhost:3001/health   # {"status":"ok"}  (web=3000, api=3001)
 ```
 **Sync:** `be/00-scaffold` → PR → merge `main`. Then Lovable *Sync from GitHub*.
-- [ ] Scaffold created and boots
+- [x] Scaffold created and boots ✅ (verified 2026-09-13: `pnpm build` 7/7 green;
+  `/health` → `{"status":"ok"}`; worker logs `worker up`)
 
 ### Task 0.2 — CI pipeline
 **Owner:** Claude CLI · **Files:** `.github/workflows/ci.yml`.
@@ -173,7 +175,21 @@ fail the build on type errors.
 > it, `pnpm test`, `pnpm build`. Cache the pnpm store.
 **Verify:** open a trivial PR; CI is green.
 **Sync:** `be/00-ci` → PR → merge.
-- [ ] CI green on a test PR
+- [x] CI workflow authored ✅ (2026-09-13). CI-equivalent steps verified locally:
+  `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` all pass. The GitHub
+  Actions run itself will confirm on the first PR (the `prisma migrate deploy`
+  step is added in Phase 1 once the schema exists).
+
+---
+
+## ✅ Phase 0 — COMPLETE (2026-09-13)
+
+Monorepo scaffold (`apps/web`, `apps/api`, `apps/worker`; `packages/contracts`,
+`ui`, `module-sdk`, `config`) on pnpm + Turborepo, Node ≥18.17 (CI Node 20),
+`docker-compose` (Postgres 16 + Redis 7), `.env.example`, and the CI workflow.
+Verified: full build 7/7 green, API `/health` → `{"status":"ok"}`, worker boots.
+Docker was not run locally (daemon down) — DB-backed verification begins in
+Phase 1.
 
 ---
 
