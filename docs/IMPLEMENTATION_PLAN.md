@@ -219,7 +219,8 @@ pnpm --filter api exec prisma migrate deploy
 pnpm --filter api exec prisma validate    # Schema valid
 ```
 **Sync:** `be/01-schema-core` → PR → merge.
-- [ ] Migration applies; schema valid
+- [x] Migration applies; schema valid ✅ (2026-09-13: migrated to app + test DBs;
+  PrismaService connects; smoke test green)
 
 ### Task 1.2 — Authentication
 **Owner:** Claude CLI · **Files:** `apps/api/src/modules/auth/*`,
@@ -244,7 +245,10 @@ pnpm --filter api test auth
 # integration: signup → login returns tokens; bad password → 401 generic
 ```
 **Sync:** `be/01-auth` → PR → merge.
-- [ ] Auth endpoints pass integration tests
+- [x] Auth endpoints pass integration tests ✅ (2026-09-13: 8 service tests green;
+  HTTP smoke signup 201 / login tokens / bad body 400; argon2 + JWT + Zod pipe +
+  throttler; tokens carry userId only). Note: NestJS DI requires the Nest
+  compiler (`nest build`), not tsx/esbuild, to emit decorator metadata.
 
 ### Task 1.3 — Tenant context + guards (the isolation core)
 **Owner:** Claude CLI · **Files:** `apps/api/src/modules/tenancy/*`,

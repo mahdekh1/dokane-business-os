@@ -6,3 +6,5 @@ export const CONTRACTS_VERSION = '0.0.0';
 /** Health check response shape shared by the API and its consumers. */
 export const HealthResponse = z.object({ status: z.literal('ok') });
 export type HealthResponse = z.infer<typeof HealthResponse>;
+
+export * from './auth';

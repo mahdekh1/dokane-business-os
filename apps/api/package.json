@@ -7,9 +7,9 @@
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
-    "dev": "tsx watch src/main.ts",
-    "start": "tsx src/main.ts",
-    "build": "prisma generate && tsc -p tsconfig.json",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "build": "prisma generate && nest build",
     "typecheck": "prisma generate && tsc -p tsconfig.json --noEmit",
     "lint": "echo \"lint: eslint not configured yet\"",
     "test": "jest --runInBand --passWithNoTests",
@@ -26,6 +26,7 @@
     "@nestjs/core": "^10.3.10",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.3.10",
+    "@nestjs/throttler": "^6.2.1",
     "@prisma/client": "^5.18.0",
     "argon2": "^0.40.3",
     "reflect-metadata": "^0.2.2",
@@ -33,6 +34,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@nestjs/cli": "^10.4.5",
+    "@nestjs/schematics": "^10.1.4",
     "@nestjs/testing": "^10.3.10",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.0",
