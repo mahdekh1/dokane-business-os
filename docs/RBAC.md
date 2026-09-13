@@ -25,7 +25,7 @@ business come from that business's `BusinessMembership.role`.
 ## 2. Permission model
 
 - Permissions are codes of the shape `module.resource.action`, e.g.
-  `catalog.products.create`, `orders.payment.record`, `crm.customers.view`.
+  `catalog.offerings.create`, `orders.payment.record`, `crm.customers.view`.
 - Permissions are **contributed by modules** (declared in the manifest) and only
   appear in a tenant's catalog when the module is **enabled**.
 - Roles map to sets of permissions. A request is authorized only if the member's
@@ -61,8 +61,15 @@ Roles and their permission sets are **editable per tenant**:
 - Custom roles carry a `business_id`; system roles have `business_id = NULL`.
 - Enabling a new module makes its permissions assignable; disabling hides them
   (existing assignments are retained but inert).
+- A membership may only be assigned a **system BUSINESS-scope role or a custom
+  role of the same business** — never another tenant's custom role (enforced by
+  guard + a DB check).
 
 This is surfaced through a Roles UI in business settings.
+
+`customers` is a **core** table; the `crm.customers.*` permissions gate the CRM
+module's UI over it (the CRM module does not *own* the base customer record — see
+[MODULES.md](./MODULES.md) §6).
 
 ## 5. Permission catalog (by module)
 
@@ -78,7 +85,7 @@ modules.view, modules.enable, billing.manage
 
 # Catalog / Inventory
 catalog.categories.view|create|update|delete
-catalog.products.view|create|update|delete
+catalog.offerings.view|create|update|delete
 inventory.view, inventory.adjust
 
 # Channels / Orders / Money

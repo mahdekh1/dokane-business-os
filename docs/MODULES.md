@@ -42,14 +42,14 @@ export const catalogManifest: ModuleManifest = {
   dependsOn: [],                       // module ids required first
   requiredEntitlement: 'catalog',      // entitlement key unlocked by a plan/add-on
   permissions: [
-    'catalog.products.view',
-    'catalog.products.create',
-    'catalog.products.update',
-    'catalog.products.delete',
+    'catalog.offerings.view',
+    'catalog.offerings.create',
+    'catalog.offerings.update',
+    'catalog.offerings.delete',
   ],
-  navigation: [{ path: '/app/catalog', labelKey: 'catalog.nav.products', icon: 'box' }],
-  events: { emits: ['catalog.product.created'], consumes: [] },
-  agentTools: ['catalog.draft_product_content'],
+  navigation: [{ path: '/app/catalog', labelKey: 'catalog.nav.offerings', icon: 'box' }],
+  events: { emits: ['catalog.offering.created'], consumes: [] },
+  agentTools: ['catalog.draft_offering_content'],
 };
 ```
 
@@ -111,7 +111,8 @@ cross-cutting domains:
 | Sales channels + per-channel reporting | Sales Channels |
 | Orders (manual + online), fulfillment, payment status | Orders (within/near Online Store; see [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md)) |
 | Income/expense ledger, receivables | Basic Accounting |
-| Leads & customers, source | CRM |
+| Customers (base record) | Core (always present) |
+| Leads, pipeline, source analytics | CRM |
 | Projects & tasks | Project Management |
 | Public site pages, theming hooks, SEO | Mini-site |
 | Notification channels & templates | Notifications |

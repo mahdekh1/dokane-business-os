@@ -108,6 +108,15 @@ OrderItem
 Snapshots freeze name/SKU/price so a later edit to an offering never rewrites
 history.
 
+- `discount` (order and item) is an integer **minor-unit amount** in the MVP;
+  percentage discounts are post-MVP. `tax_amount` is a stored `0` placeholder —
+  the MVP has no tax engine.
+- `orders.customer_id` references the **core** `customers` table (Customers is a
+  core concern; the CRM module extends it — see [DATA_MODEL.md](./DATA_MODEL.md)
+  §8).
+- An online order decrements the stock of its channel's
+  `fulfillment_location_id`.
+
 ---
 
 ## 5. Payments — partial by design

@@ -69,7 +69,7 @@ Read-only:
    period.
 
 Assisted-write (confirmation required):
-5. **Draft product content** (`WRITE`, `catalog.products.update`) — generate an
+5. **Draft offering content** (`WRITE`, `catalog.offerings.update`) — generate an
    offering's name/description/SEO for review before save.
 6. **Log it for me** (`WRITE`, `accounting.entries.create` / `pm.tasks.create`) —
    record an expense or create a task, on confirmation.

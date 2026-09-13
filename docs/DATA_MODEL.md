@@ -14,13 +14,21 @@ Conventions (full list in [ARCHITECTURE.md](./ARCHITECTURE.md) and
 - Money as integer minor units + separate currency; never floating point.
 - Explicit enum-like status values; no boolean soup for lifecycles.
 - Soft deletion / deactivation for entities with historical references.
+- **Actor / assignee references** inside a tenant (`created_by`, `opened_by`,
+  `owner_id`, `assignee_id`, …) reference `business_memberships.id`, which
+  guarantees the actor belongs to the business. Platform-level actors reference
+  `users.id`.
+- **Persisted media references store a storage *key*, not an absolute URL**; the
+  URL is derived through the storage driver at read time, so a local→S3 move
+  leaves no stale URLs. (Applies to `offering_media`, and to logo references on
+  `businesses` / `branding` / storefront settings.)
 
 ---
 
 ## 1. Platform & identity
 
 ```
-users                id, email, first_name, last_name, phone, status, created_at, updated_at
+users                id, email (UNIQUE global), first_name, last_name, phone, status, created_at, updated_at
 businesses           id, name, slug, business_type, phone, email, address*,
                      currency, timezone, status, logo_url, created_at, updated_at
 business_memberships id, business_id, user_id, role_id, status, created_at, updated_at
@@ -32,7 +40,9 @@ role_permissions     role_id, permission_id   UNIQUE(role_id, permission_id)
 
 `business.status`: `PENDING_APPROVAL | CHANGES_REQUESTED | APPROVED | REJECTED |
 SUSPENDED`. Platform roles have `business_id = NULL`; tenant-custom roles carry a
-`business_id` (see [RBAC.md](./RBAC.md)).
+`business_id` (see [RBAC.md](./RBAC.md)). A membership's `role_id` must reference
+either a system BUSINESS-scope role (`business_id IS NULL`) or a custom role of
+the **same** `business_id` — enforced by guard and a DB check.
 
 ## 2. Packaging & modules
 
@@ -46,7 +56,9 @@ module_states        id, business_id, module_id, enabled, enabled_at
 ```
 
 A module is enable-able for a tenant when the tenant holds its
-`requiredEntitlement` (via plan or add-on).
+`requiredEntitlement` (via plan or add-on). Approving a business provisions a
+default **Starter** `subscription`, so entitlements and `module_states` resolve
+from day one.
 
 ## 3. Locations & branding
 
@@ -67,7 +79,7 @@ offerings            id, business_id, category_id?, type (PHYSICAL|VIRTUAL|SERVI
                      tenant-scoped UNIQUE(business_id, sku), UNIQUE(business_id, barcode)
 offering_variants    id, business_id, offering_id, name, sku?, barcode?,
                      price, cost?, attributes (jsonb), active
-offering_media       id, business_id, offering_id, storage_key, url, sort_order, alt_text
+offering_media       id, business_id, offering_id, storage_key, sort_order, alt_text
 ```
 
 Variant `attributes` is `jsonb`; match variants on a **sorted canonical key**,
@@ -77,8 +89,11 @@ never raw `JSON.stringify` (jsonb normalizes key order on write).
 
 ```
 sales_channels       id, business_id, type (ONLINE_STORE|PHYSICAL|MARKETPLACE),
-                     name, location_id?, settings (jsonb), active
+                     name, location_id?, fulfillment_location_id?, settings (jsonb), active
 ```
+
+For `ONLINE_STORE`, `fulfillment_location_id` is **required** — it is the stock
+source decremented by online orders. For `PHYSICAL`, `location_id` is its store.
 
 ## 6. Inventory
 
@@ -94,6 +109,10 @@ inventory_movements  id, business_id, location_id, offering_id?, variant_id?,
 
 `movement_type`: `INITIAL_STOCK | SALE | RETURN | ADJUSTMENT | TRANSFER_IN |
 TRANSFER_OUT`. **Every stock change creates a movement.**
+
+Enforce the "exactly one of `offering_id`/`variant_id`" rule and the uniqueness
+with a generated `(stockable_type, stockable_id)` pair (or two partial unique
+indexes + a CHECK); "stockable_item" above is that pair, not a literal column.
 
 ## 7. Orders & money
 
@@ -115,7 +134,24 @@ invoices             id, business_id, order_id, number, status, lines (jsonb),
 invoice_sequences    id, business_id, next_number                       -- DORMANT
 ```
 
-## 8. CRM
+Notes:
+- `orders.customer_id` references the **core** `customers` table (§8), not a
+  CRM-owned table.
+- `discount` (order and item) is an integer **minor-unit amount** in the MVP
+  (percentage discounts are post-MVP); `tax_amount` is a stored `0` placeholder
+  (no tax engine in the MVP).
+- `payments.currency` must equal `orders.currency`. `payments.status` is
+  **per-payment** (`RECEIVED`; `REFUNDED` post-MVP); `orders.payment_status` is
+  the **derived aggregate**.
+- Refund states (`REFUNDED`, `PARTIALLY_REFUNDED`) and the `RETURN` movement
+  exist in the enums but are **inert in the MVP** — no flow produces them
+  (refunds are post-MVP; see [POST_MVP_CHANGES.md](./POST_MVP_CHANGES.md)).
+
+## 8. Customers (core) & CRM
+
+`customers` is a **core** table (always present) so Orders can reference it
+without depending on the CRM module being enabled. The **CRM module** adds leads,
+the pipeline and source analytics on top.
 
 ```
 customers            id, business_id, name, email?, phone?, address?, source, created_at, updated_at

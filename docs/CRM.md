@@ -15,7 +15,13 @@ tracking and source attribution. MVP-built module.
 - Feed the AI agent ("new leads this week", "who owes me money" combines CRM +
   Orders).
 
-## 2. Customers
+## 2. Customers (core table — the CRM module builds on it)
+
+The `customers` table is a **core** concern that exists whether or not the CRM
+module is enabled, so Orders can reference a customer without depending on CRM.
+The CRM module adds leads, the pipeline and source analytics on top; the base
+record and `getOrCreateByContact` live in the core customers module (see
+[DATA_MODEL.md](./DATA_MODEL.md) §8).
 
 ```
 customers  id, business_id, name, email?, phone?, address?, source, created_at, updated_at

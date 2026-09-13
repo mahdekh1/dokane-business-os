@@ -59,6 +59,11 @@ staff records a MANUAL order + payment in the console
   [NOTIFICATIONS.md](./NOTIFICATIONS.md)).
 - The resulting order is a **manual** order on the online-store channel; income
   is recorded when payment is received (see [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md)).
+- Because MVP online orders are staff-recorded, income is automatic *relative to
+  recording the payment* (any recorded payment posts income) rather than fully
+  hands-off; fully-automatic online income arrives with self-serve checkout
+  (post-MVP). The order decrements the online channel's `fulfillment_location_id`
+  stock.
 - Self-serve online checkout is a later enhancement; the channel and order model
   already support an `ONLINE` entry mode when it arrives.
 

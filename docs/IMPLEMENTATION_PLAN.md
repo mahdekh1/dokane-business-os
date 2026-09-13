@@ -45,6 +45,23 @@ Every task's requirements implicitly include these. Copy verbatim.
 - **Every feature ships with tests** (unit + integration; E2E for flows) and a
   security check from [SECURITY.md](./SECURITY.md) before merge.
 
+**Design decisions resolved in the 2026-09-13 architecture review** (applied
+throughout this plan):
+- **Customers is a core table** (created before Orders, Task 3.6); the **CRM
+  module** adds leads/pipeline/source on top.
+- **Tenant actor/assignee references** (`created_by`, `assignee_id`, …) point to
+  `business_memberships.id`, not `users.id`.
+- **Catalog permissions/events use `catalog.offerings.*` / `catalog.offering.*`**
+  (not "products"); the model is `offerings`.
+- **Sales channels carry `fulfillment_location_id`** (required for
+  `ONLINE_STORE`) as the stock source for online orders.
+- **A membership's role** must be a system BUSINESS-scope role or a custom role
+  of the same business (guard + DB check).
+- **Approving a business provisions a default Starter subscription.**
+- **Discounts are minor-unit amounts; `tax_amount` is a `0` placeholder;
+  refunds are inert** in the MVP.
+- **Persisted media stores a storage key**, not an absolute URL.
+
 Authority docs: [ARCHITECTURE.md](./ARCHITECTURE.md) · [MODULES.md](./MODULES.md)
 · [DATA_MODEL.md](./DATA_MODEL.md) · [SECURITY.md](./SECURITY.md) ·
 [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md) · [RBAC.md](./RBAC.md).
@@ -270,7 +287,7 @@ not in the tenant's enabled-module catalog is rejected.
 > CRUD scoped to a tenant (custom roles carry businessId), and compose the
 > assignable permission catalog from the tenant's enabled modules. Reject
 > assigning a permission whose module is not enabled. Test: OWNER has all;
-> a custom "Cashier" role without `catalog.products.create` is refused when
+> a custom "Cashier" role without `catalog.offerings.create` is refused when
 > creating a product.
 **Verify:**
 ```bash
@@ -494,8 +511,9 @@ normalizes key order); pagination + indexes; reject unknown fields.
 > `type` PHYSICAL/VIRTUAL/SERVICE and an extensible discriminator), variants with
 > a sorted canonical attribute key, and media rows. Enforce tenant-scoped
 > SKU/barcode uniqueness. CRUD with pagination/filter, soft delete. Register the
-> catalog manifest (permissions, nav, events `catalog.product.created`,
-> agentTool `catalog.draft_product_content` stub). Tests: variant key stability
+> catalog manifest (permissions `catalog.offerings.*`, nav, event
+> `catalog.offering.created`, agentTool `catalog.draft_offering_content` stub).
+> Tests: variant key stability
 > across key order; duplicate SKU rejected; cross-tenant SKU allowed.
 **Verify — include:**
 ```ts
@@ -579,6 +597,27 @@ state.
 **Verify:** upload a product image; it persists and renders after reload.
 - [ ] Media wired correctly
 
+### Task 3.6 — Customers (core table + minimal API)
+**Owner:** Claude CLI · **Files:** `apps/api/src/modules/customers/*`, schema
+(`customers`), contracts.
+**Interfaces — Produces:** the **core** `customers` table + `customer` CRUD used
+by Orders and later by CRM; `getOrCreateByContact(ctx, {email?, phone?, source})`.
+**Deliverable:** a customer registry that exists independently of the CRM module,
+so Orders (Phase 4) can reference `customer_id` without depending on CRM.
+**Security/Perf:** tenant-scoped; indexes `(business_id,email)`/`(business_id,phone)`;
+`source` defaults to `MANUAL`.
+**Why here:** Orders reference customers; the base table must exist before Phase 4.
+CRM (Task 5.1) adds leads, the pipeline and source analytics **on top of this**.
+**Prompt — Claude CLI:**
+> Create the core `customers` module (table per DATA_MODEL.md §8: name, email?,
+> phone?, address?, `source`). Expose customer CRUD and a
+> `getOrCreateByContact(ctx, {email?, phone?, source})` used by orders and CRM.
+> This module is always present (not entitlement-gated). Test tenant isolation
+> and dedupe-by-contact.
+**Verify:** `pnpm --filter api test customers`
+**Sync:** `be/03-customers` → PR → merge.
+- [ ] Core customers table + API present before Orders
+
 ---
 
 # Phase 4 — Channels, Orders & Money
@@ -592,8 +631,11 @@ physical channel per location; `channels.*` permissions.
 **Security/Perf:** channel ownership checks; index `(business_id)`.
 **Prompt — Claude CLI:**
 > Implement sales channels per DATA_MODEL.md §5 (type ONLINE_STORE/PHYSICAL/
-> MARKETPLACE, optional location link, settings jsonb). Auto-create an online-store
-> channel and a physical channel per location on business setup. CRUD + tests.
+> MARKETPLACE, `location_id?`, `fulfillment_location_id?`, settings jsonb).
+> Require `fulfillment_location_id` for ONLINE_STORE (its stock source).
+> Auto-create an online-store channel and a physical channel per location on
+> business setup. CRUD + tests, including that an ONLINE_STORE channel without a
+> fulfillment location is rejected.
 **Verify:** `pnpm --filter api test channels`
 **Sync:** `be/04-channels` → PR → merge.
 - [ ] Channels created + owned per tenant
@@ -764,19 +806,22 @@ orders/payments/accounting E2E.
 
 # Phase 5 — CRM & Project Management
 
-### Task 5.1 — CRM API
-**Owner:** Claude CLI · **Files:** `apps/api/src/modules/crm/*`, schema
-(`customers`, `leads`), contracts, subscriber on `order.placed`.
-**Deliverable:** customer + lead CRUD with `source`; lead lifecycle; auto
-create/link a customer with `source=ONLINE` on `order.placed`.
-**Security/Perf:** `crm.*` permissions; dedupe by email/phone on auto-link;
-indexes on `(business_id,email)`/`(business_id,phone)`.
+### Task 5.1 — CRM module (leads, pipeline, source) on core customers
+**Owner:** Claude CLI · **Files:** `apps/api/src/modules/crm/*`, schema (`leads`),
+contracts, subscriber on `order.placed`.
+**Depends on:** Task 3.6 (core `customers` already exists — CRM does not create it).
+**Deliverable:** `leads` CRUD + lifecycle; the CRM UI layer over core customers
+(source shown/filterable); auto create/link a customer with `source=ONLINE` on
+`order.placed` via the core `getOrCreateByContact`.
+**Security/Perf:** `crm.*` permissions; dedupe by email/phone on auto-link
+(delegated to the core customers service).
 **Prompt — Claude CLI:**
-> Implement CRM per CRM.md: customers + leads with `source`, lead lifecycle
-> (NEW→CONTACTED→QUALIFIED→CONVERTED/LOST) with conversion creating/linking a
-> customer, and a subscriber on `order.placed` that upserts a customer
-> (`source=ONLINE`) by email/phone. Tests: online order creates one linked
-> customer; lead conversion links to a customer.
+> Implement the CRM module per CRM.md **on top of the core customers module**
+> (Task 3.6) — do not recreate the customers table. Add `leads` with the
+> lifecycle (NEW→CONTACTED→QUALIFIED→CONVERTED/LOST); conversion calls the core
+> `getOrCreateByContact` to create/link a customer. Add a subscriber on
+> `order.placed` that upserts a customer (`source=ONLINE`). Tests: online order
+> creates one linked customer; lead conversion links to a customer.
 **Verify:** `pnpm --filter api test crm`
 **Sync:** `be/05-crm` → PR → merge.
 - [ ] CRM + auto-link on order tested
@@ -929,7 +974,7 @@ inert without explicit confirmation.
 > Implement the AI module per AI.md: an `AiGateway` with provider abstraction,
 > usage + audit logging and data minimization; a `ToolRegistry` that aggregates
 > `agentTools` from enabled modules; the read tools (business_pulse, reorder_radar,
-> who_owes_me, movers) and confirmed-write tools (draft_product_content, log_entry)
+> who_owes_me, movers) and confirmed-write tools (draft_offering_content, log_entry)
 > — each declaring `requiredPermission` and re-checking it with the caller's
 > context. Writes require a confirmation token. Add `ai_settings` per-tenant
 > enable. Tests: a read tool without the permission is refused; a write tool does
