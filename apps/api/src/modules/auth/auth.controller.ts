@@ -8,8 +8,10 @@ import type {
   SignupInput as SignupInputType,
 } from '@dokane/contracts';
 import { ZodValidationPipe } from '../../common/zod-validation.pipe';
+import { Public } from '../../common/decorators';
 import { AuthService } from './auth.service';
 
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}

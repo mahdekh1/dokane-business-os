@@ -289,7 +289,10 @@ it('rejects X-Business-Id for a business the user is not a member of', async () 
 pnpm --filter api test tenancy   # all pass, including the above
 ```
 **Sync:** `be/01-tenancy` → PR → merge.
-- [ ] Isolation guard tests pass
+- [x] Isolation guard tests pass ✅ (2026-09-13: AuthGuard + TenantGuard, global;
+  `X-Business-Id` validated against the caller's memberships; 401/403 behaviours
+  proven, incl. "cannot access a non-member business". EntitlementGuard seam
+  left for Task 1.5.)
 
 ### Task 1.4 — RBAC: roles, permissions, per-tenant custom roles
 **Owner:** Claude CLI · **Files:** `apps/api/src/modules/rbac/*`,
@@ -314,7 +317,11 @@ not in the tenant's enabled-module catalog is rejected.
 pnpm --filter api test rbac
 ```
 **Sync:** `be/01-rbac` → PR → merge.
-- [ ] RBAC tests pass
+- [x] RBAC tests pass ✅ (2026-09-13: core+platform permission catalog; system
+  roles OWNER/MANAGER/INVENTORY_MANAGER/STAFF/PLATFORM_ADMIN seeded idempotently
+  on boot; custom-role create + list; role/tenant consistency enforced. OWNER
+  lists roles, STAFF is refused. Module-specific permissions are contributed by
+  their modules in later phases.)
 
 ### Task 1.5 — Module SDK + registry + entitlements
 **Owner:** Claude CLI · **Files:** `packages/module-sdk/src/*`,

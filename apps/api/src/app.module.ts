@@ -4,6 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RbacModule } from './modules/rbac/rbac.module';
+import { BusinessesModule } from './modules/businesses/businesses.module';
+import { AuthGuard } from './common/guards/auth.guard';
+import { TenantGuard } from './common/guards/tenant.guard';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -12,8 +16,15 @@ import { HealthController } from './health.controller';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     AuthModule,
+    RbacModule,
+    BusinessesModule,
   ],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    // Global guard order: throttle → authenticate → resolve tenant + permission.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: TenantGuard },
+  ],
 })
 export class AppModule {}
