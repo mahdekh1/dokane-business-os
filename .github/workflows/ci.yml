@@ -53,4 +53,5 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm --filter @dokane/api exec prisma migrate deploy
       - run: pnpm test
+      - run: pnpm --filter @dokane/api test:e2e
       - run: pnpm build

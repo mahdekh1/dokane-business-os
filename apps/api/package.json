@@ -17,7 +17,7 @@
     "prisma:generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "nest build && node dist/seed.js"
   },
   "dependencies": {
     "@dokane/contracts": "workspace:*",

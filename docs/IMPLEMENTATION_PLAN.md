@@ -434,7 +434,8 @@ pnpm --filter web typecheck && pnpm --filter web test
 ```
 **Sync:** Lovable `ui/01-shell` → Claude reviews (no client-side authz decisions,
 nav server-driven) → merge `main`.
-- [ ] Shells render; nav is server-driven
+- [ ] Shells render; nav is server-driven — **⏳ Lovable handoff task** (the only
+  Phase-1 item not done; all backend tasks 1.1–1.7 + the 1.9 gate are complete)
 
 ### Task 1.9 — Seed + tenant-isolation test suite (Business A/B)
 **Owner:** Claude CLI · **Files:** `apps/api/prisma/seed.ts`,
@@ -454,7 +455,12 @@ failure.
 **Verify:** `pnpm --filter api test:e2e isolation` — every cross-tenant attempt
 fails.
 **Sync:** `be/01-isolation` → PR → merge. **Phase-1 gate.**
-- [ ] Isolation suite green; **do not proceed until this passes**
+- [x] Isolation suite green ✅ (2026-09-13: `apps/api/test/isolation.e2e-spec.ts`
+  — 6/6; A cannot read B's business, list B's roles/modules, or enable a module
+  for B; unauth → 401. Seed (`pnpm --filter @dokane/api seed`) creates platform
+  admin + Business A (GROWTH) + Business B (STARTER) with members. Added to CI.
+  Scope note: the suite covers the endpoints that exist so far; each module adds
+  its own A→B tests as it is built (Phase 3+), per SECURITY.md §8.)
 
 ---
 
