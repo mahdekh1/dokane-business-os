@@ -75,7 +75,10 @@ pnpm --filter @dokane/api migrate:dev   # prisma migrate dev
 
 ## Status (2026-09-13)
 
-Phase 0 ✅ (scaffold + CI). Phase 1 in progress: **1.1 schema ✅ · 1.2 auth ✅ ·
-1.3 tenant guards ✅ · 1.4 RBAC ✅ · 1.5 module registry + entitlements ✅ ·
-1.6 event bus + outbox ✅ · 1.7 audit ✅**. Next: **1.8 app shells + auth UI
-(Lovable)**, then **1.9 seed + tenant-isolation gate**.
+Phase 0 ✅ (scaffold + CI). Phase 1 backend **complete**: 1.1 schema ✅ · 1.2 auth
+✅ · 1.3 tenant guards ✅ · 1.4 RBAC ✅ · 1.5 module registry + entitlements ✅ ·
+1.6 event bus + outbox ✅ · 1.7 audit ✅ · 1.9 seed + isolation gate ✅. **Only
+1.8 (app shells + auth UI) remains — Lovable's task** (see IMPLEMENTATION_PLAN.md
+Task 1.8). Dev logins after `pnpm --filter @dokane/api seed`: owner.a@dokane.test
+/ owner.b@dokane.test / staff.a@dokane.test (all `password123`). Next after 1.8:
+Phase 2.
