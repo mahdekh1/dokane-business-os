@@ -647,7 +647,17 @@ sidebar + a module sub-nav + Storefront/Channels grouping, get approval, then bu
 **Verify (Claude):** `pnpm --filter web typecheck`; live: enable/disable a module →
 its group appears/disappears; Storefront shows one group.
 **Sync:** `ui/025-nav-groups` → commit to `main`.
-- [ ] Grouped, sub-routed, server-driven nav with Storefront + Channels IA.
+- [x] Grouped, sub-routed, server-driven nav with Storefront + Channels IA ✅
+  (2026-09-14: mock approved, then built. `module-nav.ts` is now a `NAV_GROUPS`
+  model (group + children + `requires` gating + `deepLink`); the shell renders an
+  accordion sidebar — groups gated by active modules, auto-open the active group,
+  each with a Settings child. Storefront unifies mini_site + online_store; Sales
+  Channels = In-store / Online Store (deep-links into Storefront, never claims
+  active) / Connect to Marketplace / Settings. Avatar → menu with **Account &
+  profile** + Sign out. A `[...slug]` catch-all renders a "Coming soon"
+  placeholder for not-yet-built sub-routes; concrete routes (e.g.
+  /settings/branding) win. **Verified live** on ABC Store: expand/collapse,
+  sub-route placeholders, deep-link quirk fixed, avatar menu, branding intact.)
 
 ### Task 2.5.5 — User Profile / Account
 **Owner:** Claude Code (API + UI, **mock → approve → build**) · **Files:**

@@ -3,12 +3,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Icon } from '../../src/components/icons';
+import { Icon, type IconName } from '../../src/components/icons';
 import { LogoMark } from '../../src/components/logo';
 import { api, ApiError, type ModuleView } from '../../src/lib/api';
 import type { MeBusiness, MeResponse, PlanSummary } from '@dokane/contracts';
 import { getBusinessId, setBusinessId, clearSession, getToken } from '../../src/lib/session';
-import { MODULE_NAV, MODULE_ORDER } from '../../src/lib/module-nav';
+import { NAV_GROUPS, SETTINGS_GROUP, type NavGroup } from '../../src/lib/module-nav';
 
 const initials = (s: string) =>
   s.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
@@ -22,6 +22,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<PlanSummary | null>(null);
   const [ready, setReady] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  // Explicit expand/collapse overrides; unset groups default to "open if active".
+  const [openOverrides, setOpenOverrides] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!getToken()) {
@@ -140,27 +143,39 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const navModules = MODULE_ORDER
-    .filter((id) => modules.some((m) => m.id === id && m.state === 'active') && MODULE_NAV[id])
-    .map((id) => ({ id, ...MODULE_NAV[id]! }));
-  const activeCount = modules.filter((m) => m.state === 'active').length;
+  const activeSet = new Set(modules.filter((m) => m.state === 'active').map((m) => m.id));
+  const activeCount = activeSet.size;
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + '/');
+  const groupIsActive = (g: NavGroup) =>
+    g.href ? isActive(g.href) : (g.children?.some((c) => !c.deepLink && pathname === c.href) ?? false);
+  const isOpen = (g: NavGroup) => openOverrides[g.id] ?? groupIsActive(g);
+  const toggle = (g: NavGroup) =>
+    setOpenOverrides((o) => ({ ...o, [g.id]: !isOpen(g) }));
+
+  const visibleGroups = NAV_GROUPS.filter(
+    (g) => !g.requires || g.requires.some((id) => activeSet.has(id)),
+  );
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="flex w-[248px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0]" style={{ background: 'var(--nav)' }}>
-        <div className="flex items-center gap-2.5 px-2 pb-[18px] pt-1 text-[18px] font-bold" style={{ color: 'var(--on-brand)' }}>
+      <aside className="flex w-[256px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0]" style={{ background: 'var(--nav)' }}>
+        <div className="flex items-center gap-2.5 px-2 pb-[14px] pt-1 text-[18px] font-bold" style={{ color: 'var(--on-brand)' }}>
           <LogoMark size={26} tone="var(--on-brand)" />
           Dokane
         </div>
-        <p className="mx-2.5 mb-1.5 mt-3.5 text-[11px] uppercase tracking-[.14em] text-[#6f7d77]">Workspace</p>
-        <NavItem href="/dashboard" label="Dashboard" active={isActive('/dashboard')}><Icon.dashboard /></NavItem>
-        {navModules.map((m) => (
-          <NavItem key={m.id} href={m.path} label={m.label} active={isActive(m.path)}>
-            {(() => { const C = Icon[m.icon]; return <C />; })()}
-          </NavItem>
-        ))}
-        <NavItem href="/settings/branding" label="Settings" active={isActive('/settings')}><Icon.settings /></NavItem>
+        <p className="mx-2.5 mb-1.5 mt-3 text-[11px] uppercase tracking-[.14em] text-[#6f7d77]">Workspace</p>
+
+        <nav className="flex flex-col gap-0.5 overflow-y-auto">
+          {visibleGroups.map((g) =>
+            g.href ? (
+              <NavLink key={g.id} href={g.href} label={g.label} icon={g.icon} active={isActive(g.href)} />
+            ) : (
+              <NavGroupItem key={g.id} group={g} open={isOpen(g)} onToggle={() => toggle(g)} active={groupIsActive(g)} pathname={pathname} />
+            ),
+          )}
+          <div className="mx-1.5 my-2 h-px" style={{ background: 'rgba(255,255,255,.07)' }} />
+          <NavGroupItem group={SETTINGS_GROUP} open={isOpen(SETTINGS_GROUP)} onToggle={() => toggle(SETTINGS_GROUP)} active={groupIsActive(SETTINGS_GROUP)} pathname={pathname} />
+        </nav>
 
         <div className="mt-auto rounded-[14px] border p-3.5" style={{ background: 'rgba(255,255,255,.05)', borderColor: 'rgba(255,255,255,.09)' }}>
           <b className="text-[13.5px]" style={{ color: 'var(--on-brand)' }}>{plan ? `${plan.name} plan` : 'Your plan'}</b>
@@ -207,10 +222,29 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <button aria-label="Notifications" className="grid h-[38px] w-[38px] place-items-center rounded-[10px] border border-line text-muted hover:text-ink">
               <Icon.bell />
             </button>
-            <button aria-label="Sign out" onClick={() => { clearSession(); router.replace('/login'); }}
-              className="grid h-[34px] w-[34px] place-items-center rounded-full bg-accent text-[12.5px] font-bold" style={{ color: '#3a2408' }}>
-              {initials(`${me?.user.firstName ?? ''} ${me?.user.lastName ?? ''}`)}
-            </button>
+            <div className="relative">
+              <button aria-label="Account menu" onClick={() => setUserMenuOpen((v) => !v)}
+                className="grid h-[34px] w-[34px] place-items-center rounded-full bg-accent text-[12.5px] font-bold" style={{ color: '#3a2408' }}>
+                {initials(`${me?.user.firstName ?? ''} ${me?.user.lastName ?? ''}`)}
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 top-[44px] z-20 w-[224px] rounded-xl border border-line bg-surface p-1.5 shadow-lg">
+                  <div className="px-2.5 pb-1.5 pt-1">
+                    <b className="block text-[13.5px]">{me?.user.firstName} {me?.user.lastName}</b>
+                    <span className="block text-[12px] text-muted">{me?.user.email}</span>
+                  </div>
+                  <div className="my-1 h-px bg-line" />
+                  <Link href="/account" onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] text-ink hover:bg-field">
+                    <Icon.team width={16} height={16} /> Account &amp; profile
+                  </Link>
+                  <button onClick={() => { clearSession(); router.replace('/login'); }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13.5px] text-ink hover:bg-field">
+                    <Icon.logout width={16} height={16} /> Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -220,17 +254,58 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function NavItem({ href, label, active, children }: { href: string; label: string; active: boolean; children: ReactNode }) {
+function NavLink({ href, label, icon, active }: { href: string; label: string; icon: IconName; active: boolean }) {
+  const C = Icon[icon];
   return (
     <Link
       href={href}
-      className="mb-0.5 flex items-center gap-[11px] rounded-[10px] px-[11px] py-[9px] text-[14px] font-medium transition-colors"
-      style={active
-        ? { background: 'var(--brand)', color: 'var(--on-brand)' }
-        : { color: '#C3D1CB' }}
+      className="flex items-center gap-[11px] rounded-[10px] px-[11px] py-[9px] text-[14px] font-medium transition-colors"
+      style={active ? { background: 'var(--brand)', color: 'var(--on-brand)' } : { color: '#C3D1CB' }}
     >
-      {children}
+      <C />
       <span>{label}</span>
     </Link>
+  );
+}
+
+function NavGroupItem({
+  group, open, onToggle, active, pathname,
+}: { group: NavGroup; open: boolean; onToggle: () => void; active: boolean; pathname: string }) {
+  const C = Icon[group.icon];
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-[11px] rounded-[10px] px-[11px] py-[9px] text-[14px] font-medium transition-colors hover:bg-[rgba(255,255,255,.05)]"
+        style={{ color: active ? 'var(--on-brand)' : '#C3D1CB' }}
+      >
+        <C />
+        <span>{group.label}</span>
+        <Icon.chevronDown
+          width={13}
+          height={13}
+          style={{ marginLeft: 'auto', opacity: 0.6, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .18s ease' }}
+        />
+      </button>
+      {open && group.children && (
+        <div className="mb-1 ml-[22px] mt-0.5 border-l pl-3" style={{ borderColor: 'rgba(255,255,255,.08)' }}>
+          {group.children.map((c) => {
+            const on = pathname === c.href && !c.deepLink;
+            return (
+              <Link
+                key={c.label}
+                href={c.href}
+                className="flex items-center gap-2.5 rounded-lg px-[11px] py-[7px] text-[13px] transition-colors"
+                style={on ? { background: 'rgba(255,255,255,.06)', color: 'var(--on-brand)', fontWeight: 600 } : { color: '#a9b8b2' }}
+              >
+                <span className="inline-block h-[5px] w-[5px] flex-none rounded-full" style={{ background: 'currentColor', opacity: 0.55 }} />
+                {c.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
