@@ -55,10 +55,17 @@ async function main(): Promise<void> {
   });
 
   // A pending business for the platform admin to review (reset each seed).
+  const nourDetails = {
+    businessType: 'Clinic',
+    businessNumber: '514782390',
+    addressLine1: '18 Al-Bishara St, Nazareth',
+    city: 'Nazareth',
+    phone: '+972 4 601 2233',
+  };
   const bizC = await prisma.business.upsert({
     where: { slug: 'nour-pharmacy' },
-    create: { name: 'Nour Pharmacy', slug: 'nour-pharmacy', businessType: 'Clinic', status: 'PENDING_APPROVAL' },
-    update: { status: 'PENDING_APPROVAL' },
+    create: { name: 'Nour Pharmacy', slug: 'nour-pharmacy', status: 'PENDING_APPROVAL', ...nourDetails },
+    update: { status: 'PENDING_APPROVAL', ...nourDetails },
     select: { id: true },
   });
   await prisma.subscription.deleteMany({ where: { businessId: bizC.id } });

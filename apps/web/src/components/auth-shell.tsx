@@ -22,7 +22,7 @@ export function AuthShell({ panel, children }: { panel: ReactNode; children: Rea
   return (
     <div className="grid min-h-dvh md:grid-cols-[1.1fr_1fr]">
       <section
-        className="relative hidden overflow-hidden px-12 py-11 md:flex md:flex-col"
+        className="relative hidden overflow-hidden px-12 py-11 md:flex md:flex-col md:justify-center"
         style={{ background: 'linear-gradient(150deg,#0E6A57,#0A4A3D)', color: 'var(--on-brand)' }}
       >
         <div
@@ -32,11 +32,11 @@ export function AuthShell({ panel, children }: { panel: ReactNode; children: Rea
             backgroundSize: '22px 22px',
           }}
         />
-        <div className="relative z-10 flex items-center gap-2.5 text-[20px] font-bold">
+        <div className="absolute left-12 top-11 z-10 flex items-center gap-2.5 text-[20px] font-bold">
           <LogoMark tone="var(--on-brand)" />
           Dokane
         </div>
-        <div className="relative z-10 mt-auto">{panel}</div>
+        <div className="relative z-10 max-w-[30rem]">{panel}</div>
       </section>
 
       <section className="flex flex-col px-6 py-7 md:px-10">
