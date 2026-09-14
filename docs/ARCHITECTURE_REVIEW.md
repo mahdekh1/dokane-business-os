@@ -8,7 +8,7 @@ Purpose: verify what's built through **Phase 2.5** against the mandatory rules i
 **✅ Met** · **🟡 Deferred** (correct-by-construction now; enforcement/feature lands
 in a named later phase, no live gap) · **⛔ Gap** (must fix now).
 
-No **⛔** items outstanding. Automated coverage: **55 tests / 9 suites** green.
+No **⛔** items outstanding. Automated coverage: **57 tests / 9 suites** green.
 
 ---
 
@@ -84,14 +84,14 @@ does not belong to yields `403` without revealing existence, and `SUSPENDED` /
 | `auth.service.spec` | signup/login, bad password → generic 401 |
 | `rbac-tenancy.spec` | tenancy resolution, member-only access, RBAC (OWNER vs STAFF), custom-role assignability |
 | `security.spec` | **12 attacks** — A/B isolation on every current endpoint, entitlement, SUSPENDED block, mass assignment, signup priv-esc, platform IDOR |
-| `businesses.spec` | create → PENDING + owner membership, category "Other" free-text, email/category validation, lifecycle transitions, approval audited, platform gating |
-| `registry.spec` | entitlement locking, enable + dependency order, category suggestions, enable audited |
+| `businesses.spec` | create → PENDING + owner membership, category "Other" free-text, email/category/offering-type validation (≥1), lifecycle transitions, approval audited, platform gating |
+| `registry.spec` | entitlement locking, enable + dependency order, category **and** offering-type suggestions, enable audited |
 | `me.spec` | profile read/update, invalid language → 400, password change (wrong → 401, right → 204 + login) |
 | `audit.service.spec` | append-only audit + redaction |
 | `outbox.spec` | transactional outbox relay |
 | `prisma.service.spec` | connection lifecycle |
 
-Run: `pnpm --filter @dokane/api test` → **55 passed / 9 suites**. Web typecheck
+Run: `pnpm --filter @dokane/api test` → **57 passed / 9 suites**. Web typecheck
 clean (`pnpm --filter @dokane/web exec tsc --noEmit`).
 
 ---
