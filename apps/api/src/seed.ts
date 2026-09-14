@@ -42,22 +42,25 @@ async function main(): Promise<void> {
   const ownerC = await upsertUser(prisma, 'owner.c@dokane.test', 'Owner', 'C');
 
   // `businessType` holds the category key (see @dokane/contracts BUSINESS_CATEGORIES).
+  const abcData = { businessType: 'retail', offeringTypes: ['physical'], email: 'hello@abc-store.test' };
   const bizA = await prisma.business.upsert({
     where: { slug: 'abc-store' },
-    create: { name: 'ABC Store', slug: 'abc-store', status: 'APPROVED', businessType: 'retail', email: 'hello@abc-store.test' },
-    update: { status: 'APPROVED', businessType: 'retail', email: 'hello@abc-store.test' },
+    create: { name: 'ABC Store', slug: 'abc-store', status: 'APPROVED', ...abcData },
+    update: { status: 'APPROVED', ...abcData },
     select: { id: true },
   });
+  const fashionData = { businessType: 'fashion', offeringTypes: ['physical', 'digital'], email: 'hello@fashion-store.test' };
   const bizB = await prisma.business.upsert({
     where: { slug: 'fashion-store' },
-    create: { name: 'Fashion Store', slug: 'fashion-store', status: 'APPROVED', businessType: 'fashion', email: 'hello@fashion-store.test' },
-    update: { status: 'APPROVED', businessType: 'fashion', email: 'hello@fashion-store.test' },
+    create: { name: 'Fashion Store', slug: 'fashion-store', status: 'APPROVED', ...fashionData },
+    update: { status: 'APPROVED', ...fashionData },
     select: { id: true },
   });
 
   // A pending business for the platform admin to review (reset each seed).
   const nourDetails = {
     businessType: 'pharmacy',
+    offeringTypes: ['physical', 'services'],
     email: 'contact@nour-pharmacy.test',
     businessNumber: '514782390',
     addressLine1: '18 Al-Bishara St, Nazareth',

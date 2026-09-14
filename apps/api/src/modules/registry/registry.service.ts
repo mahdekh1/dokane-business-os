@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { ModuleState } from '@dokane/module-sdk';
-import { suggestedModulesForCategory } from '@dokane/contracts';
+import { suggestedModulesForCategory, suggestedModulesForOfferings } from '@dokane/contracts';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { TenantContext } from '../../common/tenant-context';
 import { AuditService } from '../audit/audit.service';
@@ -36,12 +36,16 @@ export class RegistryService {
     });
     const enabled = new Set(states.filter((s) => s.enabled).map((s) => s.moduleId));
 
-    // Suggestions come from the business category (stored in `businessType`).
+    // Suggestions come from the business category (in `businessType`) plus the
+    // offering types the business selected at onboarding.
     const business = await this.prisma.business.findUnique({
       where: { id: ctx.businessId },
-      select: { businessType: true },
+      select: { businessType: true, offeringTypes: true },
     });
-    const suggestedSet = new Set(suggestedModulesForCategory(business?.businessType));
+    const suggestedSet = new Set([
+      ...suggestedModulesForCategory(business?.businessType),
+      ...suggestedModulesForOfferings(business?.offeringTypes),
+    ]);
 
     return MODULE_MANIFESTS.map((m) => {
       let state: ModuleState;

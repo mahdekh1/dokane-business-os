@@ -26,6 +26,12 @@ export const Icon = {
       <path d="M5 8h14l-1 11H6L5 8zM9 8V6a3 3 0 0 1 6 0v2" />
     </svg>
   ),
+  calendar: (p: P) => (
+    <svg {...base(p)}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 9h18M8 3v4M16 3v4" />
+    </svg>
+  ),
   catalog: (p: P) => (
     <svg {...base(p)}>
       <path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7" />

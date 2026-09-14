@@ -22,8 +22,8 @@ export const BUSINESS_CATEGORIES = [
   { key: 'pharmacy', label: 'Pharmacy', suggests: ['catalog', 'inventory', 'online_store', 'notifications', 'mini_site'] },
   { key: 'fashion', label: 'Fashion & apparel', suggests: ['catalog', 'inventory', 'online_store', 'mini_site'] },
   { key: 'restaurant', label: 'Restaurant / Café', suggests: ['catalog', 'online_store', 'notifications', 'mini_site'] },
-  { key: 'beauty', label: 'Health & beauty / salon', suggests: ['catalog', 'online_store', 'crm', 'mini_site'] },
-  { key: 'clinic', label: 'Clinic / services', suggests: ['online_store', 'crm', 'notifications', 'mini_site'] },
+  { key: 'beauty', label: 'Health & beauty / salon', suggests: ['catalog', 'online_store', 'crm', 'calendar', 'mini_site'] },
+  { key: 'clinic', label: 'Clinic / services', suggests: ['calendar', 'crm', 'notifications', 'mini_site'] },
   { key: 'home_hardware', label: 'Home & hardware', suggests: ['catalog', 'inventory', 'online_store', 'mini_site'] },
   { key: 'other', label: 'Other', suggests: ['catalog', 'online_store', 'mini_site'] },
 ] as const;
@@ -32,6 +32,36 @@ export const BusinessCategoryEnum = z.enum(
   BUSINESS_CATEGORIES.map((c) => c.key) as [string, ...string[]],
 );
 export type BusinessCategory = z.infer<typeof BusinessCategoryEnum>;
+
+/**
+ * What a business *offers* — orthogonal to its category. A business can pick
+ * several (a clinic may provide Services and sell Courses). Drives the Catalog
+ * offering editor (Phase 3) and module suggestions. `suggests` lists module ids
+ * recommended for that offering form.
+ */
+export const OFFERING_TYPES = [
+  { key: 'physical', label: 'Physical goods', hint: 'Items you stock and ship (e.g. clothing).', suggests: ['catalog', 'inventory', 'online_store', 'channels'] },
+  { key: 'services', label: 'Services', hint: 'Appointments or work you perform (e.g. a clinic, a salon).', suggests: ['calendar', 'crm'] },
+  { key: 'courses', label: 'Courses & programs', hint: 'Enrollments, classes, memberships.', suggests: ['catalog', 'calendar', 'crm'] },
+  { key: 'digital', label: 'Digital products', hint: 'Downloadable or virtual goods (files, licenses).', suggests: ['catalog', 'online_store'] },
+] as const;
+
+export const OfferingTypeEnum = z.enum(
+  OFFERING_TYPES.map((o) => o.key) as [string, ...string[]],
+);
+export type OfferingType = z.infer<typeof OfferingTypeEnum>;
+
+export const offeringTypeLabel = (key: string): string =>
+  OFFERING_TYPES.find((o) => o.key === key)?.label ?? key;
+
+/** Module ids suggested for a set of offering types (union, unknown keys skipped). */
+export function suggestedModulesForOfferings(types: readonly string[] | null | undefined): string[] {
+  const out = new Set<string>();
+  for (const t of types ?? []) {
+    for (const m of OFFERING_TYPES.find((o) => o.key === t)?.suggests ?? []) out.add(m);
+  }
+  return [...out];
+}
 
 /** Human label for a stored category value (known key → label; free text → itself). */
 export function categoryLabel(value: string | null | undefined): string | null {
@@ -56,6 +86,7 @@ export const CreateBusinessInput = z
     email: z.string().email().max(160),
     category: BusinessCategoryEnum,
     categoryOther: z.string().min(2).max(60).optional(),
+    offeringTypes: z.array(OfferingTypeEnum).min(1, 'Pick at least one'),
     businessNumber: z.string().max(60).optional(),
     address: z.string().min(1).max(200),
     phone: z.string().min(3).max(40),
@@ -79,6 +110,7 @@ export const BusinessDto = z.object({
   // `businessType` holds the category value (taxonomy key, or free text for
   // `other`); use `categoryLabel()` for display.
   businessType: z.string().nullable(),
+  offeringTypes: z.array(z.string()),
   email: z.string().nullable(),
   businessNumber: z.string().nullable(),
   address: z.string().nullable(),

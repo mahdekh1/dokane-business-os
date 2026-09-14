@@ -80,6 +80,14 @@ export const MODULE_MANIFESTS: ModuleManifest[] = [
     permissions: [],
   },
   {
+    id: 'calendar',
+    name: 'Calendar',
+    version: '1.0.0',
+    dependsOn: [],
+    requiredEntitlement: 'calendar',
+    permissions: [],
+  },
+  {
     id: 'ai',
     name: 'AI Assistant',
     version: '1.0.0',
@@ -101,6 +109,7 @@ export const PLAN_ENTITLEMENTS: Record<string, string[]> = {
     'notifications',
     'crm',
     'accounting',
+    'calendar',
   ],
   BUSINESS: [
     'catalog',
@@ -111,6 +120,7 @@ export const PLAN_ENTITLEMENTS: Record<string, string[]> = {
     'notifications',
     'crm',
     'accounting',
+    'calendar',
     'project_management',
     'ai',
   ],

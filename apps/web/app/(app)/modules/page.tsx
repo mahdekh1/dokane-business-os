@@ -15,6 +15,7 @@ const INFO: Record<string, { desc: string; icon: IconName }> = {
   mini_site: { desc: 'Your public pages and SEO.', icon: 'globe' },
   channels: { desc: 'Store, in-store and future marketplace channels.', icon: 'store' },
   notifications: { desc: 'WhatsApp and email messages to customers.', icon: 'bell' },
+  calendar: { desc: 'Appointments and sessions; sync Google or Apple Calendar.', icon: 'calendar' },
   ai: { desc: 'Ask about your business; draft content.', icon: 'ai' },
 };
 const info = (id: string) => INFO[id] ?? { desc: '', icon: 'catalog' as IconName };

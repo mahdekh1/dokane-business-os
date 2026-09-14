@@ -11,6 +11,7 @@ const SECTION: Record<string, string> = {
   crm: 'Customers / CRM',
   accounting: 'Accounting',
   notifications: 'Notifications',
+  calendar: 'Calendar',
   projects: 'Projects',
   ai: 'AI Assistant',
   settings: 'Settings',

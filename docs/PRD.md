@@ -77,8 +77,8 @@ A tenant sees a **Modules page** listing every module as **active**, **available
 | Tier | Modules |
 |------|---------|
 | **Starter** | Mini-site (Main + Contact), Catalog, Branding |
-| **Growth** | + Online Store (Store + Landing), Inventory, Notifications, SEO, CRM, Basic Accounting |
-| **Business** | + Team & HR, Calendar, Project Management, AI Insights/Agent, Sales Channels |
+| **Growth** | + Online Store (Store + Landing), Inventory, Notifications, SEO, CRM, Basic Accounting, **Calendar** |
+| **Business** | + Team & HR, Project Management, AI Insights/Agent, Sales Channels |
 | **Enterprise** | + ERP, POS, custom modules |
 
 Tiers are a starting point and are configured in the Billing/Module Registry
@@ -101,6 +101,15 @@ A business does not only sell physical products. The sellable-thing model is
 
 A store enables Online Store + Inventory; a clinic enables Calendar + Programs —
 both draw from the same Offerings core.
+
+**Onboarding captures the business's offering types** (agreed 2026-09-14): a
+required multi-select of **Physical goods · Services · Courses & programs ·
+Digital products** (a business can pick several — a clinic offers Services and
+sells Courses). Stored on the business (`offeringTypes`), it seeds the Catalog
+offering editor (Phase 3) and, together with the business category, drives the
+module suggestions on the Modules page. **Calendar** is a first-class MVP module
+(Growth+) for appointment/session businesses, with Google/Apple Calendar sync
+(scaffolded now; OAuth in its build phase).
 
 ---
 
@@ -168,7 +177,7 @@ Details in [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md).
 | CRM | **MVP-built** | Leads/customers, source, lifecycle |
 | Project Management | **MVP-built** | Projects & tasks with statuses |
 | Mini-site | **MVP-built** | Four public pages, brand, SEO |
-| Calendar | Scaffolded stub | Appointments/bookings |
+| Calendar | Scaffolded stub (Growth+) | Appointments/bookings/sessions; Google + Apple Calendar sync (manifest + nav + "Connect" placeholder now, OAuth in its build phase) |
 | HR | Scaffolded stub | Employees, attendance |
 | POS | Scaffolded (infra only) | Registers/sessions data model; UI out of MVP |
 | Payments & Invoices | Scaffolded (structure) | Dormant invoicing + processor abstraction |

@@ -116,6 +116,7 @@ cross-cutting domains:
 | Projects & tasks | Project Management |
 | Public site pages, theming hooks, SEO | Mini-site |
 | Notification channels & templates | Notifications |
+| Appointments/sessions + Google/Apple Calendar sync | Calendar (Growth+) |
 | AI gateway, tool registry, agent | AI |
 
 **Navigation grouping (agreed 2026-09-14).** `Mini-site` and `Online Store` are

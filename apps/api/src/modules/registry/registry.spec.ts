@@ -84,4 +84,10 @@ describe('Registry + entitlements (Task 1.5)', () => {
     expect(list.find((m) => m.id === 'notifications')?.suggested).toBe(true);
     expect(list.find((m) => m.id === 'crm')?.suggested).toBe(false);
   });
+
+  it('offering types also drive suggestions (services → calendar)', async () => {
+    await prisma.business.update({ where: { id: businessId }, data: { offeringTypes: ['services'] } });
+    const list = await registry.listForTenant(ctx());
+    expect(list.find((m) => m.id === 'calendar')?.suggested).toBe(true);
+  });
 });

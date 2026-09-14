@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { categoryLabel, type PlatformBusinessDetail } from '@dokane/contracts';
+import { categoryLabel, offeringTypeLabel, type PlatformBusinessDetail } from '@dokane/contracts';
 import { api } from '../../../../../src/lib/api';
 
 const pill: Record<string, CSSProperties> = {
@@ -42,6 +42,7 @@ export default function ReviewBusinessPage() {
   const canDecide = biz.status === 'PENDING_APPROVAL' || biz.status === 'CHANGES_REQUESTED';
   const rows: [string, string][] = [
     ['Category', categoryLabel(biz.businessType) ?? '—'],
+    ['Offers', biz.offeringTypes.length ? biz.offeringTypes.map(offeringTypeLabel).join(', ') : '—'],
     ['Business ID', biz.businessNumber ?? '—'],
     ['Email', biz.email ?? '—'],
     ['Phone', biz.phone ?? '—'],

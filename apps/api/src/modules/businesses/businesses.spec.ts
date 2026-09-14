@@ -52,7 +52,7 @@ describe('Business workflow (Task 2.1, integration)', () => {
 
   it('registers a business as PENDING_APPROVAL with an owner membership', async () => {
     const res = await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Test Shop', slug: `${tag}-shop`, email: 'shop@test.dev', category: 'retail', address: '1 Main St', phone: '+1 555 0000' })
+      .send({ name: 'Test Shop', slug: `${tag}-shop`, email: 'shop@test.dev', category: 'retail', offeringTypes: ['physical'], address: '1 Main St', phone: '+1 555 0000' })
       .expect(201);
     businessId = res.body.id;
     expect(res.body.status).toBe('PENDING_APPROVAL');
@@ -65,27 +65,34 @@ describe('Business workflow (Task 2.1, integration)', () => {
 
   it('stores the free-text label when category is "other"', async () => {
     const res = await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Other Biz', slug: `${tag}-other`, email: 'other@test.dev', category: 'other', categoryOther: 'Bookstore', address: '2 Main St', phone: '+1 555 0001' })
+      .send({ name: 'Other Biz', slug: `${tag}-other`, email: 'other@test.dev', category: 'other', categoryOther: 'Bookstore', offeringTypes: ['services'], address: '2 Main St', phone: '+1 555 0001' })
       .expect(201);
     expect(res.body.businessType).toBe('Bookstore');
     expect(res.body.email).toBe('other@test.dev');
+    expect(res.body.offeringTypes).toEqual(['services']);
+  });
+
+  it('requires at least one offering type', async () => {
+    await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
+      .send({ name: 'No Offer', slug: `${tag}-nooffer`, email: 'no@test.dev', category: 'retail', offeringTypes: [], address: '5 St', phone: '+1 555 0004' })
+      .expect(400);
   });
 
   it('rejects "other" without a free-text label', async () => {
     await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'No Label', slug: `${tag}-nolabel`, email: 'nl@test.dev', category: 'other', address: '3 Main St', phone: '+1 555 0002' })
+      .send({ name: 'No Label', slug: `${tag}-nolabel`, email: 'nl@test.dev', category: 'other', offeringTypes: ['physical'], address: '3 Main St', phone: '+1 555 0002' })
       .expect(400);
   });
 
   it('rejects an invalid email', async () => {
     await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Bad Email', slug: `${tag}-bademail`, email: 'not-an-email', category: 'retail', address: '4 Main St', phone: '+1 555 0003' })
+      .send({ name: 'Bad Email', slug: `${tag}-bademail`, email: 'not-an-email', category: 'retail', offeringTypes: ['physical'], address: '4 Main St', phone: '+1 555 0003' })
       .expect(400);
   });
 
   it('rejects a duplicate slug', async () => {
     await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Dup', slug: `${tag}-shop`, email: 'dup@test.dev', category: 'retail', address: '1 Main St', phone: '+1 555 0000' })
+      .send({ name: 'Dup', slug: `${tag}-shop`, email: 'dup@test.dev', category: 'retail', offeringTypes: ['physical'], address: '1 Main St', phone: '+1 555 0000' })
       .expect(409);
   });
 

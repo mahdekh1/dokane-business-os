@@ -117,6 +117,18 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: 'calendar',
+    requires: ['calendar'],
+    children: [
+      { label: 'Schedule', href: '/calendar' },
+      { label: 'Appointments', href: '/calendar/appointments' },
+      { label: 'Connect Google / Apple', href: '/calendar/integrations' },
+      { label: 'Settings', href: '/calendar/settings' },
+    ],
+  },
+  {
     id: 'projects',
     label: 'Projects',
     icon: 'projects',

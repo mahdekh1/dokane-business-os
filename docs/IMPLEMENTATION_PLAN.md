@@ -686,10 +686,15 @@ error; new password lets you log in.
 ## ✅ Phase 2.5 — COMPLETE (2026-09-14)
 
 IA + onboarding alignment done and verified live: onboarding collects business
-email + a required category (taxonomy + "Other"); category drives Modules-page
-suggestions; the console shell is now grouped/accordion nav with the Storefront +
-Sales Channels IA (each module a group with its own Settings); and every user has
-an Account/profile surface. Phase 3 builds module UIs on this IA.
+email, a required category (taxonomy + "Other"), and required **offering types**
+(Physical / Services / Courses & programs / Digital — multi-select, ≥1); category
+**and** offering types drive Modules-page suggestions; the console shell is now
+grouped/accordion nav with the Storefront + Sales Channels IA (each module a group
+with its own Settings); every user has an Account/profile surface; and the
+**Calendar** module (Growth+, Google/Apple sync) is scaffolded — manifest,
+entitlement, nav group with a "Connect Google / Apple" placeholder. Its real
+OAuth sync + appointment screens are a later build task (see Phase 5). Phase 3
+builds module UIs on this IA.
 
 ---
 
@@ -1056,6 +1061,24 @@ status; projects list + a kanban task board.
 **Verify (Claude):** typecheck + web tests.
 **Sync:** `ui/05-crm-pm` → review → merge.
 - [ ] CRM + PM UIs work
+
+### Task 5.4 — Calendar module (appointments + Google/Apple sync)
+**Owner:** Claude Code (API + UI) · **Files:** `apps/api/src/modules/calendar/*`,
+contracts, `apps/web/app/(app)/calendar/*`.
+**Context:** the module is already scaffolded (Phase 2.5) — manifest + entitlement
+(`calendar`, Growth+) + nav group (Schedule / Appointments / Connect Google-Apple /
+Settings). This task builds it out.
+**Deliverable:** appointment/session schema (tenant-scoped) + API; a schedule +
+appointments UI; **calendar integration** — OAuth connect for Google Calendar and
+Apple Calendar (CalDAV), two-way sync of appointments; the "Connect Google / Apple"
+screen goes live. Suggested for Services/Courses businesses and clinic/beauty
+categories (already wired).
+**Security/Perf:** OAuth tokens encrypted at rest, tenant-scoped; sync runs via the
+outbox/queue, never inside a request tx; never expose another tenant's calendar.
+**Verify:** A/B isolation on appointments; connect + sync round-trip against a test
+calendar (or a mocked provider); typecheck + tests.
+**Sync:** `be/05-calendar` (API + UI) → review → merge.
+- [ ] Appointments + Google/Apple sync work end-to-end
 
 ---
 

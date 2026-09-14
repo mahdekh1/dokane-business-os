@@ -6,7 +6,7 @@ import { LogoMark } from '../../src/components/logo';
 import { api, ApiError } from '../../src/lib/api';
 import { getToken, clearSession, setBusinessId } from '../../src/lib/session';
 import { inputCls, labelCls, primaryBtnCls } from '../../src/lib/ui';
-import { BUSINESS_CATEGORIES, type BusinessCategory } from '@dokane/contracts';
+import { BUSINESS_CATEGORIES, OFFERING_TYPES, type BusinessCategory, type OfferingType } from '@dokane/contracts';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function OnboardingPage() {
     email: '',
     category: 'retail' as BusinessCategory,
     categoryOther: '',
+    offeringTypes: [] as OfferingType[],
     businessNumber: '',
     address: '',
     phone: '',
@@ -30,9 +31,21 @@ export default function OnboardingPage() {
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm({ ...form, [k]: e.target.value });
 
+  const toggleOffering = (key: OfferingType) =>
+    setForm((f) => ({
+      ...f,
+      offeringTypes: f.offeringTypes.includes(key)
+        ? f.offeringTypes.filter((o) => o !== key)
+        : [...f.offeringTypes, key],
+    }));
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    if (form.offeringTypes.length === 0) {
+      setError('Pick at least one thing your business offers.');
+      return;
+    }
     setBusy(true);
     try {
       const biz = await api.createBusiness({
@@ -41,6 +54,7 @@ export default function OnboardingPage() {
         email: form.email,
         category: form.category,
         categoryOther: form.category === 'other' ? form.categoryOther : undefined,
+        offeringTypes: form.offeringTypes,
         businessNumber: form.businessNumber || undefined,
         address: form.address,
         phone: form.phone,
@@ -125,6 +139,32 @@ export default function OnboardingPage() {
                   value={form.categoryOther} onChange={set('categoryOther')} required />
               </div>
             )}
+
+            <div className="mb-4">
+              <label className={labelCls}>What does your business offer? <span className="font-normal text-muted">(pick one or more)</span></label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {OFFERING_TYPES.map((o) => {
+                  const on = form.offeringTypes.includes(o.key);
+                  return (
+                    <button type="button" key={o.key} onClick={() => toggleOffering(o.key)}
+                      aria-pressed={on}
+                      className="flex items-start gap-2.5 rounded-xl border p-3 text-left transition-colors"
+                      style={on
+                        ? { borderColor: 'var(--brand)', background: 'color-mix(in srgb, var(--brand) 8%, transparent)' }
+                        : { borderColor: 'var(--border)', background: 'var(--field)' }}>
+                      <span className="mt-0.5 grid h-[18px] w-[18px] flex-none place-items-center rounded-md border"
+                        style={on ? { background: 'var(--brand)', borderColor: 'var(--brand)', color: 'var(--on-brand)' } : { borderColor: 'var(--border)' }}>
+                        {on && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
+                      </span>
+                      <span>
+                        <b className="block text-[13.5px] font-semibold text-ink">{o.label}</b>
+                        <span className="text-[12px] text-muted">{o.hint}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <div className="mb-4 grid grid-cols-2 gap-3">
               <div>

@@ -119,7 +119,7 @@ describe('Security / tenant isolation (SECURITY.md)', () => {
     const res = await auth(request(server()).post('/api/v1/business'), tokenA)
       .send({
         name: 'Mass Assign', slug: `${tag}-mass`, email: 'x@test.dev', category: 'retail',
-        address: '1 St', phone: '+1 555 0000',
+        offeringTypes: ['physical'], address: '1 St', phone: '+1 555 0000',
         status: 'APPROVED', id: '00000000-0000-0000-0000-000000000000', isPlatformAdmin: true,
       })
       .expect(201);

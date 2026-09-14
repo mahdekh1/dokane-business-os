@@ -57,6 +57,7 @@ model Business {
   name           String
   slug           String   @unique
   businessType   String?
+  offeringTypes  String[] @default([])
   businessNumber String?
   phone          String?
   email          String?
