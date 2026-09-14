@@ -115,6 +115,17 @@ both draw from the same Offerings core.
   channel.
 - Every order and every money entry carries a `channel_id`, so **global** and
   **per-channel** reporting come from one dimension with no duplication.
+- In the console, **Sales Channels** is the "where you sell" surface: In-store,
+  Online Store, and **Connect to Marketplace** (the marketplace is a channel a
+  business opts into, not a separate product).
+
+**Storefront vs Sales Channels (IA, agreed 2026-09-14).** The business's own web
+presence — the **mini-site** public pages (Main/Store/Contact/Landing, brand, SEO)
+plus the **online store** commerce (cart, online orders, WhatsApp handoff) — is
+presented to owners as **one "Storefront" surface**, even though `mini_site` and
+`online_store` remain separate modules underneath. "Sales Channels" stays distinct:
+it is where a business turns selling locations on/off and connects to the
+marketplace. See [MODULES.md](./MODULES.md) §6 and IMPLEMENTATION_PLAN Phase 2.5.
 
 Details in [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md).
 

@@ -118,6 +118,13 @@ cross-cutting domains:
 | Notification channels & templates | Notifications |
 | AI gateway, tool registry, agent | AI |
 
+**Navigation grouping (agreed 2026-09-14).** `Mini-site` and `Online Store` are
+separate modules but present under **one "Storefront" nav group** in the console
+(public pages + online commerce are one surface to the owner). `Sales Channels`
+is its own group — In-store, Online Store, and Connect to Marketplace. Every
+module renders as a **nav group** (its sub-routes + a Settings tab), not a flat
+link. See PRD §5 and IMPLEMENTATION_PLAN Phase 2.5.
+
 ## 7. Scaffolded vs built
 
 - **MVP-built** modules implement their full contract.

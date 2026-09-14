@@ -560,6 +560,97 @@ default-plan provisioning), onboarding + pending state, the Modules page
 
 ---
 
+# Phase 2.5 — IA & onboarding alignment (pre-Phase-3)
+
+Agreed with the product owner (2026-09-14) after reviewing Phase 2 live. Fixes the
+information architecture and onboarding **before** building module UIs, so Phase 3+
+lands on the right nav and data. No new domain modules — this reshapes navigation,
+onboarding inputs, and adds a user profile.
+
+**Decisions locked:**
+1. **Storefront** is the single shopper-facing surface. The `mini_site` (public
+   pages, SEO, brand) and `online_store` (cart, online orders, WhatsApp handoff)
+   modules stay as-is architecturally, but present under **one "Storefront" nav
+   group** — no more two redundant top-level items.
+2. **Sales Channels** = *where you sell*: In-store, Online Store, and **Connect to
+   Marketplace** (the future marketplace is a channel, per PRD §5).
+3. **Every module is a nav group** with its own sub-routes + a **Settings** tab
+   (not a flat single link). The shell must support this before Phase 3.
+4. **Onboarding** collects a required **business email** and a required **business
+   category** from a taxonomy with an **"Other"** free-text fallback; category
+   drives *suggested* modules.
+5. Each user has a **Profile/Account** surface (created at signup; editable).
+
+### Task 2.5.1 — Spec + IA alignment (docs)
+**Owner:** Claude Code · **Files:** `docs/PRD.md` §5/§7, `docs/MODULES.md` §6,
+`docs/DESIGN.md` (nav IA), this plan.
+**Deliverable:** the five decisions above written into the authoritative specs so
+Phase 3+ builds against them (Storefront grouping, Sales Channels incl. Marketplace,
+module=nav-group, onboarding fields, user profile).
+**Verify:** docs reviewed; no contradiction with PRD §5 channel model.
+**Sync:** `docs/phase-2.5-ia` → commit to `main`.
+- [ ] Specs updated to the agreed model.
+
+### Task 2.5.2 — Onboarding: business email + category taxonomy
+**Owner:** Claude Code (contracts + API + UI) · **Files:**
+`packages/contracts/src/business.ts`, `apps/api/src/modules/businesses/*`,
+`apps/web/app/(app)/onboarding/*`, review page.
+**Interfaces — Produces:** `CreateBusinessInput` gains `email` (required, valid
+email) and `category` (required; enum of the taxonomy or `other` + free text).
+Maps to existing `businesses.email` and `businesses.businessType` columns — **no
+migration** (category key stored in `businessType`).
+**Deliverable:** onboarding form collects email + category (with "Other → specify");
+values persist and show on the platform review page.
+**Security/Perf:** validate email + category server-side; category is a closed set
++ `other`.
+**Verify:** create a business with each category incl. Other → persisted + shown on
+review; blank email/category → validation error.
+**Sync:** `be/025-onboarding-fields` → commit to `main`.
+- [ ] Email + category collected, validated, persisted, shown on review.
+
+### Task 2.5.3 — Category → suggested modules
+**Owner:** Claude Code · **Files:** `apps/api/src/modules/registry/*` (or contracts
+map), `apps/web/app/(app)/modules/*`.
+**Deliverable:** a `category → suggested module ids` map; the Modules page marks
+suggested-for-your-business modules (within what the plan entitles). Lightweight —
+suggestion only, not auto-enable.
+**Verify:** a Pharmacy/Clinic vs Retail business surfaces different suggestions.
+**Sync:** `be/025-category-suggestions` → commit to `main`.
+- [ ] Suggestions reflect the chosen category.
+
+### Task 2.5.4 — Console shell: module nav groups + Storefront/Channels IA
+**Owner:** Claude Code (UI, **mock → approve → build**) · **Files:**
+`apps/web/app/(app)/layout.tsx`, `src/lib/module-nav.ts`, module placeholder routes.
+**Deliverable:** the sidebar renders each module as a **group** (collapsible) with
+sub-routes + a Settings sub-item; `mini_site`+`online_store` render as one
+**Storefront** group; **Sales Channels** group lists In-store / Online Store /
+Connect to Marketplace. Sub-routes may be labelled placeholders until each module is
+built (Phase 3+).
+**Security/Perf:** nav still server-driven from enabled modules; groups hide when
+the module is disabled.
+**Prompt — UI (design skills):** follow DESIGN.md Modern lane; mock the grouped
+sidebar + a module sub-nav + Storefront/Channels grouping, get approval, then build.
+**Verify (Claude):** `pnpm --filter web typecheck`; live: enable/disable a module →
+its group appears/disappears; Storefront shows one group.
+**Sync:** `ui/025-nav-groups` → commit to `main`.
+- [ ] Grouped, sub-routed, server-driven nav with Storefront + Channels IA.
+
+### Task 2.5.5 — User Profile / Account
+**Owner:** Claude Code (API + UI, **mock → approve → build**) · **Files:**
+`apps/api/src/modules/me/*` (or `profile`), contracts, `apps/web/app/(app)/account/*`.
+**Interfaces — Produces:** `PATCH /api/v1/me` (update firstName/lastName/language)
+and `POST /api/v1/me/password` (current + new password, argon2-verified).
+**Deliverable:** an Account surface (profile details, email shown, password change,
+language) reachable from the top-bar avatar; distinct from business settings.
+**Security/Perf:** password change re-verifies the current password; email change (if
+allowed) is out of scope for 2.5 unless trivial — read-only for now.
+**Verify:** update name/language persists across reload; wrong current password →
+error; new password lets you log in.
+**Sync:** `be/025-profile` → commit to `main`.
+- [ ] Profile view/edit + password change work end-to-end.
+
+---
+
 # Phase 3 — Catalog & Inventory
 
 ### Task 3.1 — Catalog schema + offerings API (with types & variants)
