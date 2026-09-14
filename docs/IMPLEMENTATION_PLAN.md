@@ -1084,6 +1084,11 @@ calendar (or a mocked provider); typecheck + tests.
 
 # Phase 6 — Mini-site (public)
 
+> **Before building:** review [reference/mini-site-review-market-spotlight.md](./reference/mini-site-review-market-spotlight.md)
+> — a parked analysis of the Lovable marketplace's mini-site + vendor-settings model
+> (settings IA, brand-as-CSS-vars, jsonb-vs-typed line, tabbed vs multi-page, and a
+> feature inventory to triage). Resolve its four open threads first.
+
 ### Task 6.1 — Storefront settings + public catalog API
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/storefront/*`, schema
 (`storefront_settings`), public read services, contracts.

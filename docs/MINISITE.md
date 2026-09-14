@@ -2,6 +2,9 @@
 
 Version: 2.0 · Date: 2026-09-13
 
+> Reference before building: [reference/mini-site-review-market-spotlight.md](./reference/mini-site-review-market-spotlight.md)
+> (Lovable marketplace mini-site + vendor-settings model — parked until Phase 6).
+
 Each business gets a public, server-rendered mini-site — themed with its brand
 and built for search engines. The Store page is the online **sales channel**;
 ordering hands off to WhatsApp in the MVP.
