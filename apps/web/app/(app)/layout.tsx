@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '../../src/components/icons';
 import { LogoMark } from '../../src/components/logo';
 import { api, ApiError, type ModuleView } from '../../src/lib/api';
-import type { MeBusiness, MeResponse } from '@dokane/contracts';
+import type { MeBusiness, MeResponse, PlanSummary } from '@dokane/contracts';
 import { getBusinessId, setBusinessId, clearSession, getToken } from '../../src/lib/session';
 import { MODULE_NAV, MODULE_ORDER } from '../../src/lib/module-nav';
 
@@ -19,6 +19,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [current, setCurrent] = useState<MeBusiness | null>(null);
   const [modules, setModules] = useState<ModuleView[]>([]);
+  const [plan, setPlan] = useState<PlanSummary | null>(null);
   const [ready, setReady] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
@@ -37,7 +38,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             data.businesses.find((b) => b.id === storedId) ?? data.businesses[0]!;
           setBusinessId(chosen.id);
           setCurrent(chosen);
-          setModules(await api.modules());
+          if (chosen.status === 'APPROVED') {
+            const [mods, pl] = await Promise.all([api.modules(), api.plan()]);
+            setModules(mods);
+            setPlan(pl);
+          }
         }
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
@@ -55,7 +60,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     setBusinessId(b.id);
     setCurrent(b);
     setSwitcherOpen(false);
-    setModules(await api.modules());
+    if (b.status === 'APPROVED') {
+      const [mods, pl] = await Promise.all([api.modules(), api.plan()]);
+      setModules(mods);
+      setPlan(pl);
+    }
   }
 
   if (!ready) {
@@ -154,7 +163,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <NavItem href="/settings" label="Settings" active={isActive('/settings')}><Icon.settings /></NavItem>
 
         <div className="mt-auto rounded-[14px] border p-3.5" style={{ background: 'rgba(255,255,255,.05)', borderColor: 'rgba(255,255,255,.09)' }}>
-          <b className="text-[13.5px]" style={{ color: 'var(--on-brand)' }}>{current?.role === 'OWNER' ? 'Growth plan' : 'Your plan'}</b>
+          <b className="text-[13.5px]" style={{ color: 'var(--on-brand)' }}>{plan ? `${plan.name} plan` : 'Your plan'}</b>
           <p className="mb-2.5 mt-0.5 text-[12px] text-[#8f9c96]">{activeCount} modules active</p>
           <Link href="/modules" className="block rounded-[9px] py-2 text-center text-[12.5px] font-semibold" style={{ background: 'rgba(255,255,255,.1)', color: 'var(--on-brand)' }}>
             Manage plan

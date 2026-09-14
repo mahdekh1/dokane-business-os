@@ -517,8 +517,14 @@ never enables a locked module client-side.
 > active/available/locked, an Enable button (calls `POST /modules/:id/enable`) for
 > entitled modules, and an upgrade prompt for locked ones. Show the current plan.
 **Verify:** enabling a module updates the nav (server-driven) on reload.
-**Sync:** `ui/02-modules` → review → merge.
-- [ ] Modules page reflects entitlements; enable works
+**Sync:** `ui/02-modules` (UI) → commit to `main`.
+- [x] Modules page reflects entitlements; enable works ✅ (2026-09-14: `/modules`
+  page — plan header + module cards grouped Active / Available / Locked from
+  `GET /modules`; **Enable** calls `POST /modules/:id/enable` (dependency + NOT_
+  ENTITLED errors surfaced inline), locked show upgrade. Added `GET /billing/plan`
+  and wired the real plan into the sidebar card. **Verified live**: enabled
+  Mini-site on a Growth business → card → Active, plan "7 of 10", and "Mini-site"
+  appeared in the sidebar nav.)
 
 ### Task 2.4 — Branding & theming
 **Owner:** Claude Code (API + UI) · **Files:**

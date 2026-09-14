@@ -72,6 +72,16 @@ export class EntitlementService implements OnModuleInit {
     return keys;
   }
 
+  /** The business's current plan (tier + name), or null if none. */
+  async getPlan(businessId: string): Promise<{ tier: string; name: string } | null> {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { businessId },
+      include: { plan: true },
+    });
+    if (!sub || sub.status !== 'ACTIVE') return null;
+    return { tier: sub.plan.tier, name: sub.plan.name };
+  }
+
   /** Assign a default plan to a business (used at approval time, Task 2.1). */
   async assignPlan(businessId: string, tier: string): Promise<void> {
     const plan = await this.prisma.plan.findUniqueOrThrow({ where: { tier } });

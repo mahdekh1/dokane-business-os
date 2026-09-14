@@ -6,6 +6,7 @@ import type {
   CreateBusinessInput,
   LoginInput,
   MeResponse,
+  PlanSummary,
   PlatformBusinessDetail,
   SignupInput,
 } from '@dokane/contracts';
@@ -76,6 +77,8 @@ export const api = {
     apiFetch<AuthTokens>('/auth/signup', { method: 'POST', body: input, noBusiness: true }),
   me: () => apiFetch<MeResponse>('/me', { noBusiness: true }),
   modules: () => apiFetch<ModuleView[]>('/modules'),
+  enableModule: (id: string) => apiFetch<ModuleView>(`/modules/${id}/enable`, { method: 'POST' }),
+  plan: () => apiFetch<PlanSummary>('/billing/plan'),
 
   createBusiness: (input: CreateBusinessInput) =>
     apiFetch<BusinessDto>('/business', { method: 'POST', body: input, noBusiness: true }),

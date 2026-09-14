@@ -11,3 +11,4 @@ export * from './auth';
 export * from './rbac';
 export * from './me';
 export * from './business';
+export * from './modules';
