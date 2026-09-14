@@ -77,15 +77,22 @@ pnpm --filter @dokane/api migrate:dev   # prisma migrate dev
   and report honestly what was and wasn't verified. Mark completed tasks in
   `docs/IMPLEMENTATION_PLAN.md`.
 
-## Status (2026-09-13)
+## Status (2026-09-14)
 
-Phase 0 ✅ (scaffold + CI). **Phase 1 ✅ COMPLETE** (1.1–1.9): schema, auth, tenant
-guards, RBAC, module registry/entitlements, event bus/outbox, audit, seed +
-isolation gate, and the `apps/web` shell (auth pages, console with server-driven
-nav + business switcher, platform admin). Design system in `docs/DESIGN.md`
-(Modern lane, customizable platform brand kit; Tailwind + tokens). Dev logins
-after `pnpm --filter @dokane/api seed`: owner.a@dokane.test / owner.b@dokane.test
-/ staff.a@dokane.test (all `password123`). **Next: Phase 2** (onboarding,
-approval, Modules page UI, branding). Run the app: `docker compose up -d`, then
-api `pnpm --filter @dokane/api start` (:3001) + web `pnpm --filter @dokane/web dev`
-(:3000); the API needs `WEB_ORIGIN` for CORS.
+Phase 0 ✅ · **Phase 1 ✅** (schema, auth, tenant guards, RBAC, module registry/
+entitlements, event bus/outbox, audit, seed + isolation, `apps/web` shell) ·
+**Phase 2 ✅** (onboarding + approval lifecycle, Modules page, branding) ·
+**Phase 2.5 ✅** (IA + onboarding alignment): onboarding collects business email +
+required category (taxonomy + "Other"); category drives Modules-page suggestions;
+console shell is grouped **accordion nav** with the **Storefront** (mini_site +
+online_store) and **Sales Channels** IA (each module a group with its own
+Settings, gated by active modules); every user has an **Account/profile** surface
+(avatar menu → `/account`; `PATCH /me`, `POST /me/password`). Nav model in
+`apps/web/src/lib/module-nav.ts`; not-yet-built module sub-routes render a
+placeholder via `app/(app)/[...slug]`. Design system in `docs/DESIGN.md` (Modern
+lane). Dev logins after `pnpm --filter @dokane/api seed`: admin@dokane.test
+(platform), owner.a@dokane.test (Growth), owner.b@dokane.test (Starter),
+owner.c@dokane.test (pending), staff.a@dokane.test (all `password123`).
+**Next: Phase 3** (Catalog & Inventory) — build module UIs on the Phase 2.5 IA.
+Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
+web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.
