@@ -606,7 +606,15 @@ values persist and show on the platform review page.
 **Verify:** create a business with each category incl. Other → persisted + shown on
 review; blank email/category → validation error.
 **Sync:** `be/025-onboarding-fields` → commit to `main`.
-- [ ] Email + category collected, validated, persisted, shown on review.
+- [x] Email + category collected, validated, persisted, shown on review ✅
+  (2026-09-14: `CreateBusinessInput` gained `email` + `category` (9-item taxonomy
+  `BUSINESS_CATEGORIES` in contracts, with `categoryOther` refine for "Other");
+  stored in `businesses.email` + `businessType` — no migration. Onboarding form
+  has category select (+ conditional "specify"), business email, phone/address;
+  review + overview show `categoryLabel()` and the business email. **Verified
+  live**: created "Galilee Bookshop" (category Other → "Bookstore") → review
+  shows Category=Bookstore, Email; 3 new API tests (Other free-text, missing
+  label→400, bad email→400) pass.)
 
 ### Task 2.5.3 — Category → suggested modules
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/registry/*` (or contracts

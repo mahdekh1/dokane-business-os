@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import type { PlatformBusinessDetail } from '@dokane/contracts';
+import { categoryLabel, type PlatformBusinessDetail } from '@dokane/contracts';
 import { api } from '../../../../../src/lib/api';
 
 const pill: Record<string, CSSProperties> = {
@@ -41,10 +41,11 @@ export default function ReviewBusinessPage() {
 
   const canDecide = biz.status === 'PENDING_APPROVAL' || biz.status === 'CHANGES_REQUESTED';
   const rows: [string, string][] = [
-    ['Type', biz.businessType ?? '—'],
+    ['Category', categoryLabel(biz.businessType) ?? '—'],
     ['Business ID', biz.businessNumber ?? '—'],
-    ['Address', biz.address ?? '—'],
+    ['Email', biz.email ?? '—'],
     ['Phone', biz.phone ?? '—'],
+    ['Address', biz.address ?? '—'],
     ['Store URL', `dokane.com/${biz.slug}`],
   ];
 
@@ -56,7 +57,7 @@ export default function ReviewBusinessPage() {
         <div className="grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-brand text-[18px] font-bold text-on-brand">{initials(biz.name)}</div>
         <div>
           <h1 className="text-[23px] font-bold tracking-tight">{biz.name}</h1>
-          <p className="mt-0.5 text-[13.5px] text-muted">{biz.businessType ?? '—'} · dokane.com/{biz.slug}</p>
+          <p className="mt-0.5 text-[13.5px] text-muted">{categoryLabel(biz.businessType) ?? '—'} · dokane.com/{biz.slug}</p>
         </div>
         <span className="ml-auto rounded-full px-3 py-1 text-[11px] font-semibold" style={pill[biz.status]}>{label(biz.status)}</span>
       </div>

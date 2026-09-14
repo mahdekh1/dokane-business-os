@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
-import type { BusinessDto } from '@dokane/contracts';
+import { categoryLabel, type BusinessDto } from '@dokane/contracts';
 import { api } from '../../../src/lib/api';
 
 const pill: Record<string, CSSProperties> = {
@@ -64,7 +64,7 @@ export default function AdminOverviewPage() {
                 style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
                 <div>
                   <b className="text-[14px] font-semibold">{b.name}</b>
-                  <span className="mt-0.5 block text-[12.5px] text-muted">{b.businessType ?? '—'} · dokane.com/{b.slug}</span>
+                  <span className="mt-0.5 block text-[12.5px] text-muted">{categoryLabel(b.businessType) ?? '—'} · dokane.com/{b.slug}</span>
                 </div>
                 <span className="rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={pill[b.status]}>{label(b.status)}</span>
                 <span className="flex gap-2">
@@ -86,7 +86,7 @@ export default function AdminOverviewPage() {
           <thead>
             <tr className="text-[11.5px] uppercase tracking-[.08em] text-muted">
               <th className="pb-2.5 text-left font-semibold">Business</th>
-              <th className="pb-2.5 text-left font-semibold">Type</th>
+              <th className="pb-2.5 text-left font-semibold">Category</th>
               <th className="pb-2.5 text-left font-semibold">Status</th>
               <th></th>
             </tr>
@@ -100,7 +100,7 @@ export default function AdminOverviewPage() {
                     <b className="font-semibold">{b.name}</b>
                   </span>
                 </td>
-                <td className="border-t border-line py-3">{b.businessType ?? '—'}</td>
+                <td className="border-t border-line py-3">{categoryLabel(b.businessType) ?? '—'}</td>
                 <td className="border-t border-line py-3">
                   <span className="rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={pill[b.status]}>{label(b.status)}</span>
                 </td>

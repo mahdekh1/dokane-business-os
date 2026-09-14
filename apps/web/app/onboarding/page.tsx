@@ -6,13 +6,16 @@ import { LogoMark } from '../../src/components/logo';
 import { api, ApiError } from '../../src/lib/api';
 import { getToken, clearSession, setBusinessId } from '../../src/lib/session';
 import { inputCls, labelCls, primaryBtnCls } from '../../src/lib/ui';
+import { BUSINESS_CATEGORIES, type BusinessCategory } from '@dokane/contracts';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     name: '',
     slug: '',
-    businessType: 'Store',
+    email: '',
+    category: 'retail' as BusinessCategory,
+    categoryOther: '',
     businessNumber: '',
     address: '',
     phone: '',
@@ -35,7 +38,9 @@ export default function OnboardingPage() {
       const biz = await api.createBusiness({
         name: form.name,
         slug: form.slug,
-        businessType: form.businessType,
+        email: form.email,
+        category: form.category,
+        categoryOther: form.category === 'other' ? form.categoryOther : undefined,
         businessNumber: form.businessNumber || undefined,
         address: form.address,
         phone: form.phone,
@@ -99,9 +104,12 @@ export default function OnboardingPage() {
 
             <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls} htmlFor="type">Business type</label>
-                <select id="type" className={inputCls} value={form.businessType} onChange={set('businessType')}>
-                  <option>Store</option><option>Clinic</option><option>Services</option><option>Other</option>
+                <label className={labelCls} htmlFor="category">Business category</label>
+                <select id="category" className={inputCls} value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value as BusinessCategory })}>
+                  {BUSINESS_CATEGORIES.map((c) => (
+                    <option key={c.key} value={c.key}>{c.label}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -110,13 +118,28 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div className="mb-4">
+            {form.category === 'other' && (
+              <div className="mb-4">
+                <label className={labelCls} htmlFor="categoryOther">Tell us your category</label>
+                <input id="categoryOther" className={inputCls} placeholder="e.g. Bookstore, Bakery, Auto parts"
+                  value={form.categoryOther} onChange={set('categoryOther')} required />
+              </div>
+            )}
+
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} htmlFor="email">Business email</label>
+                <input id="email" type="email" className={inputCls} placeholder="hello@yourshop.com" value={form.email} onChange={set('email')} required />
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="phone">Phone</label>
+                <input id="phone" type="tel" className={inputCls} placeholder="+1 555 000 0000" value={form.phone} onChange={set('phone')} required />
+              </div>
+            </div>
+
+            <div className="mb-5">
               <label className={labelCls} htmlFor="addr">Address</label>
               <input id="addr" className={inputCls} placeholder="123 Main St, City" value={form.address} onChange={set('address')} required />
-            </div>
-            <div className="mb-5">
-              <label className={labelCls} htmlFor="phone">Phone</label>
-              <input id="phone" type="tel" className={inputCls} placeholder="+1 555 000 0000" value={form.phone} onChange={set('phone')} required />
             </div>
 
             <div className="flex justify-end">

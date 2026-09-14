@@ -31,6 +31,7 @@ export class BusinessesService {
       slug: b.slug,
       status: b.status,
       businessType: b.businessType,
+      email: b.email,
       businessNumber: b.businessNumber,
       address: b.addressLine1,
       phone: b.phone,
@@ -49,7 +50,10 @@ export class BusinessesService {
           data: {
             name: input.name,
             slug: input.slug,
-            businessType: input.businessType,
+            // Category is stored in businessType: the taxonomy key, or the
+            // free-text label when the owner picked "Other".
+            businessType: input.category === 'other' ? input.categoryOther : input.category,
+            email: input.email,
             businessNumber: input.businessNumber,
             addressLine1: input.address,
             phone: input.phone,

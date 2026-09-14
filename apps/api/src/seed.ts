@@ -41,22 +41,24 @@ async function main(): Promise<void> {
   const ownerB = await upsertUser(prisma, 'owner.b@dokane.test', 'Owner', 'B');
   const ownerC = await upsertUser(prisma, 'owner.c@dokane.test', 'Owner', 'C');
 
+  // `businessType` holds the category key (see @dokane/contracts BUSINESS_CATEGORIES).
   const bizA = await prisma.business.upsert({
     where: { slug: 'abc-store' },
-    create: { name: 'ABC Store', slug: 'abc-store', status: 'APPROVED' },
-    update: { status: 'APPROVED' },
+    create: { name: 'ABC Store', slug: 'abc-store', status: 'APPROVED', businessType: 'retail', email: 'hello@abc-store.test' },
+    update: { status: 'APPROVED', businessType: 'retail', email: 'hello@abc-store.test' },
     select: { id: true },
   });
   const bizB = await prisma.business.upsert({
     where: { slug: 'fashion-store' },
-    create: { name: 'Fashion Store', slug: 'fashion-store', status: 'APPROVED' },
-    update: { status: 'APPROVED' },
+    create: { name: 'Fashion Store', slug: 'fashion-store', status: 'APPROVED', businessType: 'fashion', email: 'hello@fashion-store.test' },
+    update: { status: 'APPROVED', businessType: 'fashion', email: 'hello@fashion-store.test' },
     select: { id: true },
   });
 
   // A pending business for the platform admin to review (reset each seed).
   const nourDetails = {
-    businessType: 'Clinic',
+    businessType: 'pharmacy',
+    email: 'contact@nour-pharmacy.test',
     businessNumber: '514782390',
     addressLine1: '18 Al-Bishara St, Nazareth',
     city: 'Nazareth',
