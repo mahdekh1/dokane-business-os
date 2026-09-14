@@ -106,6 +106,11 @@ describe('Business workflow (Task 2.1, integration)', () => {
     expect(res.body.status).toBe('APPROVED');
     const sub = await prisma.subscription.findUnique({ where: { businessId } });
     expect(sub).toBeTruthy();
+    // SECURITY.md §9: business approval is an audited, security-sensitive event.
+    const audit = await prisma.auditLog.findFirst({
+      where: { businessId, action: 'BUSINESS_APPROVED' },
+    });
+    expect(audit).toBeTruthy();
   });
 
   it('rejects an invalid transition (approve when already approved)', async () => {
