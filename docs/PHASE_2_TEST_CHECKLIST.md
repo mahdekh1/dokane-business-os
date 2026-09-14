@@ -45,6 +45,9 @@ Open **http://localhost:3000**.
 - [ ] Enter a **Store URL** with spaces/caps → hint shown; only `a-z 0-9 -` accepted.
 - [ ] Pick a **Business category** from the list; choose **Other** → a "Tell us your
       category" field appears and is required.
+- [ ] **What does your business offer?** — pick one or more of Physical goods /
+      Services / Courses & programs / Digital products; submitting with none selected
+      is rejected ("pick at least one").
 - [ ] **Business email** is required and validated (a non-email is rejected).
 - [ ] Create the business → **"Waiting for approval"** screen (PENDING_APPROVAL).
 - [ ] Try the same Store URL again (another business) → "That store URL is taken".
@@ -72,9 +75,13 @@ Open **http://localhost:3000**.
 - [ ] Click **Enable** on an Available module (e.g. Notifications) → it becomes Active and appears in the sidebar nav.
 - [ ] Locked modules (Projects, AI on Growth) show **Upgrade to unlock** and can't be enabled.
 - [ ] As `owner.b` (Starter), fewer modules are available; more are Locked.
-- [ ] **Suggested for the category**: available modules that suit the business category
-      (e.g. Catalog + Mini-site for a Fashion/Starter business) float to the top with a
-      **Suggested** chip + highlight. Locked/active modules never show the chip.
+- [ ] **Suggested** modules reflect **category + offering types**: available modules
+      that suit them (e.g. Catalog + Mini-site for a Fashion/Starter business; Calendar
+      for a Services offering) float to the top with a **Suggested** chip + highlight.
+      Locked/active modules never show the chip.
+- [ ] **Calendar** (Growth+) appears as a module; **Enable** it → it becomes Active and
+      a **Calendar** group appears in the sidebar with **Connect Google / Apple**
+      (placeholder — OAuth sync is a later phase). A Starter business sees Calendar Locked.
 
 ## F. Branding
 - [ ] As `owner.a`, open **Settings** → `/settings/branding`.
