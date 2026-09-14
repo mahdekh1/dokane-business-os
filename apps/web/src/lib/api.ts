@@ -2,6 +2,7 @@
 
 import type {
   AuthTokens,
+  BrandingDto,
   BusinessDto,
   CreateBusinessInput,
   LoginInput,
@@ -9,6 +10,7 @@ import type {
   PlanSummary,
   PlatformBusinessDetail,
   SignupInput,
+  UpdateBrandingInput,
 } from '@dokane/contracts';
 import { getToken, getBusinessId } from './session';
 
@@ -79,6 +81,12 @@ export const api = {
   modules: () => apiFetch<ModuleView[]>('/modules'),
   enableModule: (id: string) => apiFetch<ModuleView>(`/modules/${id}/enable`, { method: 'POST' }),
   plan: () => apiFetch<PlanSummary>('/billing/plan'),
+
+  branding: {
+    get: () => apiFetch<BrandingDto>('/branding'),
+    update: (input: UpdateBrandingInput) =>
+      apiFetch<BrandingDto>('/branding', { method: 'PATCH', body: input }),
+  },
 
   createBusiness: (input: CreateBusinessInput) =>
     apiFetch<BusinessDto>('/business', { method: 'POST', body: input, noBusiness: true }),

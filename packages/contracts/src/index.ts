@@ -12,3 +12,4 @@ export * from './rbac';
 export * from './me';
 export * from './business';
 export * from './modules';
+export * from './branding';

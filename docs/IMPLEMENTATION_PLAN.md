@@ -541,8 +541,22 @@ endpoint (Task 3.4).
 reads brand values and sets `--color-primary`, `--color-secondary`, font
 variables. Apply to the mini-site too.
 **Verify:** changing a color updates the console + mini-site theme.
-**Sync:** `be/02-branding` → merge; then `ui/02-branding` → merge.
-- [ ] Brand values drive the theme
+**Sync:** `be/02-branding` (API + UI) → commit to `main`.
+- [x] Brand values drive the theme ✅ (2026-09-14: `branding` model + `GET/PATCH
+  /branding`; `/settings/branding` editor — primary/secondary colour pickers,
+  heading/body font selects, logo URL — with a **live storefront preview** that
+  loads the chosen fonts. Per-business branding themes the mini-site (Phase 6);
+  the console keeps the platform brand, as designed in DESIGN.md.)
+
+---
+
+## ✅ Phase 2 — COMPLETE (2026-09-14)
+
+Business workflow done and verified live: business creation + approval lifecycle
+(platform-admin auth, approve/reject/request-changes/suspend/reactivate,
+default-plan provisioning), onboarding + pending state, the Modules page
+(enable/entitlement/dependency), and branding. See
+[PHASE_2_TEST_CHECKLIST.md](./PHASE_2_TEST_CHECKLIST.md) for the manual flows.
 
 ---
 

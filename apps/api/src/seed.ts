@@ -54,13 +54,15 @@ async function main(): Promise<void> {
     select: { id: true },
   });
 
-  // A pending business for the platform admin to review.
+  // A pending business for the platform admin to review (reset each seed).
   const bizC = await prisma.business.upsert({
     where: { slug: 'nour-pharmacy' },
     create: { name: 'Nour Pharmacy', slug: 'nour-pharmacy', businessType: 'Clinic', status: 'PENDING_APPROVAL' },
-    update: {},
+    update: { status: 'PENDING_APPROVAL' },
     select: { id: true },
   });
+  await prisma.subscription.deleteMany({ where: { businessId: bizC.id } });
+  await prisma.moduleState.deleteMany({ where: { businessId: bizC.id } });
 
   const owner = await prisma.role.findFirstOrThrow({
     where: { name: 'OWNER', businessId: null, isSystem: true },

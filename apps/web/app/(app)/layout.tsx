@@ -160,7 +160,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             {(() => { const C = Icon[m.icon]; return <C />; })()}
           </NavItem>
         ))}
-        <NavItem href="/settings" label="Settings" active={isActive('/settings')}><Icon.settings /></NavItem>
+        <NavItem href="/settings/branding" label="Settings" active={isActive('/settings')}><Icon.settings /></NavItem>
 
         <div className="mt-auto rounded-[14px] border p-3.5" style={{ background: 'rgba(255,255,255,.05)', borderColor: 'rgba(255,255,255,.09)' }}>
           <b className="text-[13.5px]" style={{ color: 'var(--on-brand)' }}>{plan ? `${plan.name} plan` : 'Your plan'}</b>
