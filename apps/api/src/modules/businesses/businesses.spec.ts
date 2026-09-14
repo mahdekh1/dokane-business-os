@@ -52,7 +52,7 @@ describe('Business workflow (Task 2.1, integration)', () => {
 
   it('registers a business as PENDING_APPROVAL with an owner membership', async () => {
     const res = await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Test Shop', slug: `${tag}-shop` })
+      .send({ name: 'Test Shop', slug: `${tag}-shop`, address: '1 Main St', phone: '+1 555 0000' })
       .expect(201);
     businessId = res.body.id;
     expect(res.body.status).toBe('PENDING_APPROVAL');
@@ -65,7 +65,7 @@ describe('Business workflow (Task 2.1, integration)', () => {
 
   it('rejects a duplicate slug', async () => {
     await auth(request(app.getHttpServer()).post('/api/v1/business'), userToken)
-      .send({ name: 'Dup', slug: `${tag}-shop` })
+      .send({ name: 'Dup', slug: `${tag}-shop`, address: '1 Main St', phone: '+1 555 0000' })
       .expect(409);
   });
 

@@ -45,6 +45,10 @@ export default function LoginPage() {
       const tokens = await api.login({ email, password });
       setTokens(tokens.accessToken, tokens.refreshToken);
       const me = await api.me();
+      if (me.user.isPlatformAdmin) {
+        router.push('/admin');
+        return;
+      }
       if (me.businesses[0]) setBusinessId(me.businesses[0].id);
       router.push('/dashboard');
     } catch (err) {

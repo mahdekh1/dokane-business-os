@@ -53,12 +53,13 @@ model User {
 
 model Business {
   id           String   @id @default(uuid()) @db.Uuid
-  name         String
-  slug         String   @unique
-  businessType String?
-  phone        String?
-  email        String?
-  addressLine1 String?
+  name           String
+  slug           String   @unique
+  businessType   String?
+  businessNumber String?
+  phone          String?
+  email          String?
+  addressLine1   String?
   addressLine2 String?
   city         String?
   postalCode   String?

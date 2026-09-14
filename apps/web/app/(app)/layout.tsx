@@ -79,6 +79,58 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  if (current && current.status !== 'APPROVED') {
+    const info =
+      ({
+        PENDING_APPROVAL: {
+          title: 'Waiting for approval',
+          body: 'Your business is being reviewed. We’ll let you know as soon as it’s approved.',
+        },
+        CHANGES_REQUESTED: {
+          title: 'Changes requested',
+          body: 'The reviewer asked for some changes before approving. Update your details and resubmit.',
+        },
+        REJECTED: {
+          title: 'Application not approved',
+          body: 'This business application was not approved. Contact support if you think this is a mistake.',
+        },
+        SUSPENDED: {
+          title: 'Business suspended',
+          body: 'This business is currently suspended. Contact support to restore access.',
+        },
+      } as Record<string, { title: string; body: string }>)[current.status] ?? {
+        title: 'Not active',
+        body: 'This business is not active yet.',
+      };
+    return (
+      <div className="min-h-dvh">
+        <header className="flex h-[60px] items-center justify-between border-b border-line bg-surface px-6">
+          <span className="flex items-center gap-2.5 text-[17px] font-bold"><LogoMark size={26} /> Dokane</span>
+          <button onClick={() => { clearSession(); router.replace('/login'); }} className="text-[13px] text-muted hover:text-ink">Sign out</button>
+        </header>
+        <div className="grid place-items-center p-6" style={{ minHeight: 'calc(100dvh - 60px)' }}>
+          <div className="w-full max-w-[440px] rounded-2xl border border-line bg-surface p-8 text-center">
+            <span className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[.1em]" style={{ background: 'rgba(217,142,75,.18)', color: '#95571b' }}>
+              {current.status.replace(/_/g, ' ').toLowerCase()}
+            </span>
+            <h1 className="mt-4 text-[22px] font-bold tracking-tight">{info.title}</h1>
+            <p className="mx-auto mt-2 max-w-[36ch] text-[14px] text-muted">{info.body}</p>
+            <p className="mt-5 text-[13px] text-muted">{current.name}</p>
+            {me && me.businesses.length > 1 && (
+              <div className="mt-5 flex flex-wrap justify-center gap-2 border-t border-line pt-5">
+                {me.businesses.filter((b) => b.id !== current.id).map((b) => (
+                  <button key={b.id} onClick={() => switchBusiness(b)} className="rounded-full border border-line px-3 py-1.5 text-[13px] hover:border-line-strong">
+                    Switch to {b.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const navModules = MODULE_ORDER
     .filter((id) => modules.some((m) => m.id === id && m.state === 'active') && MODULE_NAV[id])
     .map((id) => ({ id, ...MODULE_NAV[id]! }));

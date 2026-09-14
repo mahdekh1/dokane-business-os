@@ -1,6 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { LifecycleNote } from '@dokane/contracts';
-import type { BusinessDto, LifecycleNote as LifecycleNoteType } from '@dokane/contracts';
+import type {
+  BusinessDto,
+  LifecycleNote as LifecycleNoteType,
+  PlatformBusinessDetail,
+} from '@dokane/contracts';
 import type { BusinessStatus } from '@prisma/client';
 import { RequirePlatformPermission, UserId } from '../../common/decorators';
 import { ZodValidationPipe } from '../../common/zod-validation.pipe';
@@ -18,8 +22,8 @@ export class PlatformBusinessesController {
 
   @RequirePlatformPermission('platform.businesses.view')
   @Get(':id')
-  get(@Param('id') id: string): Promise<BusinessDto> {
-    return this.businesses.getBusiness(id);
+  get(@Param('id') id: string): Promise<PlatformBusinessDetail> {
+    return this.businesses.getBusinessDetail(id);
   }
 
   @RequirePlatformPermission('platform.businesses.approve')

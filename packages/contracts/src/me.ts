@@ -16,6 +16,7 @@ export const MeResponse = z.object({
     email: z.string(),
     firstName: z.string(),
     lastName: z.string(),
+    isPlatformAdmin: z.boolean(),
   }),
   businesses: z.array(MeBusiness),
 });

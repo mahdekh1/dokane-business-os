@@ -15,7 +15,13 @@ export class MeController {
   async me(@UserId() userId: string): Promise<MeResponse> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      select: { id: true, email: true, firstName: true, lastName: true },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isPlatformAdmin: true,
+      },
     });
     const memberships = await this.prisma.businessMembership.findMany({
       where: { userId, status: 'ACTIVE' },

@@ -17,8 +17,9 @@ export const CreateBusinessInput = z.object({
     .max(60)
     .regex(/^[a-z0-9-]+$/, 'Use lowercase letters, numbers and hyphens'),
   businessType: z.string().max(60).optional(),
-  currency: z.string().length(3).default('USD'),
-  timezone: z.string().max(60).default('UTC'),
+  businessNumber: z.string().max(60).optional(),
+  address: z.string().min(1).max(200),
+  phone: z.string().min(3).max(40),
 });
 export type CreateBusinessInput = z.infer<typeof CreateBusinessInput>;
 
@@ -33,8 +34,17 @@ export const BusinessDto = z.object({
   slug: z.string(),
   status: BusinessStatusEnum,
   businessType: z.string().nullable(),
-  currency: z.string(),
-  timezone: z.string(),
+  businessNumber: z.string().nullable(),
+  address: z.string().nullable(),
+  phone: z.string().nullable(),
   createdAt: z.string(),
 });
 export type BusinessDto = z.infer<typeof BusinessDto>;
+
+/** Platform review view: business + its owner. */
+export const PlatformBusinessDetail = BusinessDto.extend({
+  owner: z
+    .object({ name: z.string(), email: z.string() })
+    .nullable(),
+});
+export type PlatformBusinessDetail = z.infer<typeof PlatformBusinessDetail>;

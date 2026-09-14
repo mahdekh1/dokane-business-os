@@ -493,8 +493,17 @@ list of applications with approve/reject/request-changes; onboarding checklist.
 > (create location → enable modules → add offerings → publish site). RTL-ready,
 > translation keys.
 **Verify (Claude):** `pnpm --filter web typecheck && pnpm --filter web test`
-**Sync:** `ui/02-onboarding` → review → merge.
-- [ ] Onboarding + admin review flow works end-to-end
+**Sync:** `ui/02-onboarding` (UI) → commit to `main`.
+- [x] Onboarding + admin review flow works end-to-end ✅ (2026-09-14: `/onboarding`
+  create-business form (name, store URL/slug, type, Business ID, address, phone —
+  currency/timezone default server-side); owner **pending-approval** state in the
+  console; platform-admin overview + review page wired to the real
+  `/platform/businesses` endpoints (metrics, pending queue, approve/reject/
+  request-changes/suspend/reactivate); platform routes gated by
+  `isPlatformAdmin`. Backend added `Business.businessNumber`, `isPlatformAdmin`
+  on `/me`, and `GET /platform/businesses/:id` detail. **Verified live**: new
+  user → create business → "Waiting for approval"; admin → review → approve →
+  business Active + subscription provisioned.)
 
 ### Task 2.3 — Modules page + billing (entitlements)
 **Owner:** Claude Code (API + UI) · **Files:** registry endpoints (from

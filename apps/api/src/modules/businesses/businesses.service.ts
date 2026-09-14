@@ -5,7 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, type Business, type BusinessStatus } from '@prisma/client';
-import type { BusinessDto, CreateBusinessInput } from '@dokane/contracts';
+import type {
+  BusinessDto,
+  CreateBusinessInput,
+  PlatformBusinessDetail,
+} from '@dokane/contracts';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { EntitlementService } from '../registry/entitlement.service';
@@ -27,8 +31,9 @@ export class BusinessesService {
       slug: b.slug,
       status: b.status,
       businessType: b.businessType,
-      currency: b.currency,
-      timezone: b.timezone,
+      businessNumber: b.businessNumber,
+      address: b.addressLine1,
+      phone: b.phone,
       createdAt: b.createdAt.toISOString(),
     };
   }
@@ -45,8 +50,9 @@ export class BusinessesService {
             name: input.name,
             slug: input.slug,
             businessType: input.businessType,
-            currency: input.currency,
-            timezone: input.timezone,
+            businessNumber: input.businessNumber,
+            addressLine1: input.address,
+            phone: input.phone,
             status: 'PENDING_APPROVAL',
           },
         });
@@ -84,6 +90,26 @@ export class BusinessesService {
     const b = await this.prisma.business.findUnique({ where: { id } });
     if (!b) throw new NotFoundException({ code: 'NOT_FOUND' });
     return this.toDto(b);
+  }
+
+  /** Platform review detail: business + its owner. */
+  async getBusinessDetail(id: string): Promise<PlatformBusinessDetail> {
+    const b = await this.prisma.business.findUnique({ where: { id } });
+    if (!b) throw new NotFoundException({ code: 'NOT_FOUND' });
+    const ownerMembership = await this.prisma.businessMembership.findFirst({
+      where: { businessId: id, role: { name: 'OWNER' } },
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    return {
+      ...this.toDto(b),
+      owner: ownerMembership
+        ? {
+            name: `${ownerMembership.user.firstName} ${ownerMembership.user.lastName}`.trim(),
+            email: ownerMembership.user.email,
+          }
+        : null,
+    };
   }
 
   private async transition(
