@@ -1,0 +1,14 @@
+# Keep the Docker build context small and force clean installs inside the image.
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+.git
+.github
+**/*.log
+**/.env
+**/.env.*
+!**/.env.example
+docs
+storage
+*.md

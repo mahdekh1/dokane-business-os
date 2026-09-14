@@ -98,6 +98,9 @@ PR → lint → typecheck → unit → integration → security checks → build
 
 Database migrations are version-controlled. See [TEST_PLAN.md](./TEST_PLAN.md).
 
+The concrete deployment target and step-by-step runbook (Hostinger KVM VPS, Docker
+Compose + Caddy, per-phase redeploy) live in [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## 7. Money, time, deletion (invariants)
 
 - Money: integer minor units + currency; never floating point.

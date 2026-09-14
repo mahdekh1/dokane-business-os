@@ -1,0 +1,26 @@
+# Reverse proxy for Dokane.
+#
+# SITE_ADDRESS controls the public address AND whether HTTPS is on:
+#   - unset / ":80"        → plain HTTP on port 80 (first deploy, IP only)
+#   - "dokane.example.com" → Caddy auto-provisions a Let's Encrypt cert (HTTPS)
+#
+# Same-origin routing: the browser calls /api/v1/... on the same host, so there
+# is no CORS and no IP baked into the web build. /api/* → API, everything else → web.
+
+{
+	admin off
+}
+
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	# NestJS API (it expects the /api/v1 prefix, passed through unchanged).
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	# Next.js web app.
+	handle {
+		reverse_proxy web:3000
+	}
+}

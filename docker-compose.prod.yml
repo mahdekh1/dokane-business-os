@@ -1,0 +1,90 @@
+# Production stack — one VPS, all-in-one. Separate from the dev docker-compose.yml
+# (which only runs Postgres + Redis for local `pnpm dev`).
+#
+# Usage:  docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+# The API container runs `prisma migrate deploy` on start (see docker-entrypoint.sh).
+name: dokane
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - dokane_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - dokane_redis:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      API_PORT: "3001"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AUTH_SECRET: ${AUTH_SECRET}
+      WEB_ORIGIN: ${WEB_ORIGIN}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_DIR: /app/apps/api/storage
+    volumes:
+      - dokane_storage:/app/apps/api/storage
+    expose:
+      - "3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - dokane_caddy_data:/data
+      - dokane_caddy_config:/config
+
+volumes:
+  dokane_pg:
+  dokane_redis:
+  dokane_storage:
+  dokane_caddy_data:
+  dokane_caddy_config:

@@ -38,6 +38,7 @@ frame everything else.
 | [PROJECT_MGMT.md](./PROJECT_MGMT.md) | Projects & tasks, statuses |
 | [ROADMAP.md](./ROADMAP.md) | MVP scope and phased module rollout |
 | [DELIVERY.md](./DELIVERY.md) | Stack detail, delivery model, required skills (incl. UI design skills), environments, CI/CD |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | How to deploy to a Hostinger KVM VPS with Docker Compose + Caddy; per-phase redeploy runbook |
 | [DESIGN.md](./DESIGN.md) | Platform design system — Modern lane, customizable brand kit, shell layouts |
 | [TEST_PLAN.md](./TEST_PLAN.md) | Testing strategy across unit/integration/E2E/security |
 | [ARCHITECTURE_REVIEW.md](./ARCHITECTURE_REVIEW.md) | Phase 1–2.5 MUST-requirement compliance ledger (security/architecture) + test coverage |
