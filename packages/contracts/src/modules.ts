@@ -9,6 +9,8 @@ export const ModuleViewDto = z.object({
   requiredEntitlement: z.string(),
   dependsOn: z.array(z.string()),
   state: ModuleStateEnum,
+  /** Recommended for this business's category (Task 2.5.3); a UI hint only. */
+  suggested: z.boolean(),
 });
 export type ModuleViewDto = z.infer<typeof ModuleViewDto>;
 

@@ -624,7 +624,13 @@ suggested-for-your-business modules (within what the plan entitles). Lightweight
 suggestion only, not auto-enable.
 **Verify:** a Pharmacy/Clinic vs Retail business surfaces different suggestions.
 **Sync:** `be/025-category-suggestions` → commit to `main`.
-- [ ] Suggestions reflect the chosen category.
+- [x] Suggestions reflect the chosen category ✅ (2026-09-14: `GET /modules` now
+  returns `suggested` per module, computed from the business category via
+  `suggestedModulesForCategory()`; the Modules page floats suggested-available
+  modules to the top with a "Suggested" chip + brand ring and a section hint.
+  Suggestion shows only on *available* modules (not locked/active). +1 registry
+  test (pharmacy suggests notifications, not crm). **Verified live**: Fashion
+  Store (fashion, Starter) → Catalog + Mini-site highlighted as Suggested.)
 
 ### Task 2.5.4 — Console shell: module nav groups + Storefront/Channels IA
 **Owner:** Claude Code (UI, **mock → approve → build**) · **Files:**

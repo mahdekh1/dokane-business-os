@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { ModuleState } from '@dokane/module-sdk';
+import { suggestedModulesForCategory } from '@dokane/contracts';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { TenantContext } from '../../common/tenant-context';
 import { AuditService } from '../audit/audit.service';
@@ -17,6 +18,7 @@ export interface ModuleView {
   requiredEntitlement: string;
   dependsOn: string[];
   state: ModuleState;
+  suggested: boolean;
 }
 
 @Injectable()
@@ -34,6 +36,13 @@ export class RegistryService {
     });
     const enabled = new Set(states.filter((s) => s.enabled).map((s) => s.moduleId));
 
+    // Suggestions come from the business category (stored in `businessType`).
+    const business = await this.prisma.business.findUnique({
+      where: { id: ctx.businessId },
+      select: { businessType: true },
+    });
+    const suggestedSet = new Set(suggestedModulesForCategory(business?.businessType));
+
     return MODULE_MANIFESTS.map((m) => {
       let state: ModuleState;
       if (!entitled.has(m.requiredEntitlement)) {
@@ -49,6 +58,7 @@ export class RegistryService {
         requiredEntitlement: m.requiredEntitlement,
         dependsOn: m.dependsOn,
         state,
+        suggested: suggestedSet.has(m.id),
       };
     });
   }
@@ -109,6 +119,8 @@ export class RegistryService {
       requiredEntitlement: manifest.requiredEntitlement,
       dependsOn: manifest.dependsOn,
       state: 'active',
+      // Now active — the suggested hint only matters for available modules.
+      suggested: false,
     };
   }
 }

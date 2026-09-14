@@ -76,4 +76,12 @@ describe('Registry + entitlements (Task 1.5)', () => {
     });
     expect(row).toBeTruthy();
   });
+
+  it('marks modules suggested for the business category (Task 2.5.3)', async () => {
+    // Pharmacy suggests notifications, not crm (both available on GROWTH).
+    await prisma.business.update({ where: { id: businessId }, data: { businessType: 'pharmacy' } });
+    const list = await registry.listForTenant(ctx());
+    expect(list.find((m) => m.id === 'notifications')?.suggested).toBe(true);
+    expect(list.find((m) => m.id === 'crm')?.suggested).toBe(false);
+  });
 });

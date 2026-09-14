@@ -70,6 +70,7 @@ export interface ModuleView {
   requiredEntitlement: string;
   dependsOn: string[];
   state: 'active' | 'available' | 'locked';
+  suggested: boolean;
 }
 
 export const api = {

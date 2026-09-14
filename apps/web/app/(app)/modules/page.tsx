@@ -45,8 +45,12 @@ export default function ModulesPage() {
   if (!modules || !plan) return <p className="text-[14px] text-muted">Loading…</p>;
 
   const active = modules.filter((m) => m.state === 'active');
-  const available = modules.filter((m) => m.state === 'available');
+  // Suggested-for-this-category modules float to the top of "Available".
+  const available = modules
+    .filter((m) => m.state === 'available')
+    .sort((a, b) => Number(b.suggested) - Number(a.suggested));
   const locked = modules.filter((m) => m.state === 'locked');
+  const suggestedCount = available.filter((m) => m.suggested).length;
 
   return (
     <div className="max-w-[900px]">
@@ -68,9 +72,14 @@ export default function ModulesPage() {
       )}
 
       <Section title="Active" items={active} render={(m) => <ModuleCard m={m} action={<button className="rounded-full border border-line px-4 py-2 text-[13px] font-semibold text-ink">Manage</button>} />} />
-      <Section title="Available on your plan" items={available} render={(m) => (
-        <ModuleCard m={m} action={<button onClick={() => enable(m.id)} className="rounded-full bg-brand px-4 py-2 text-[13px] font-semibold text-on-brand hover:bg-brand-2">Enable</button>} />
-      )} />
+      <Section
+        title="Available on your plan"
+        subtitle={suggestedCount > 0 ? 'Highlighted modules are suggested for your business type.' : undefined}
+        items={available}
+        render={(m) => (
+          <ModuleCard m={m} action={<button onClick={() => enable(m.id)} className="rounded-full bg-brand px-4 py-2 text-[13px] font-semibold text-on-brand hover:bg-brand-2">Enable</button>} />
+        )}
+      />
       <Section title="Unlock with a higher plan" items={locked} render={(m) => (
         <ModuleCard m={m} locked action={<span className="text-[12.5px] font-semibold text-muted">Upgrade to unlock</span>} />
       )} />
@@ -78,11 +87,13 @@ export default function ModulesPage() {
   );
 }
 
-function Section({ title, items, render }: { title: string; items: ModuleView[]; render: (m: ModuleView) => React.ReactNode }) {
+function Section({ title, subtitle, items, render }: { title: string; subtitle?: string; items: ModuleView[]; render: (m: ModuleView) => React.ReactNode }) {
   if (items.length === 0) return null;
   return (
     <section className="mt-6">
-      <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-[.1em] text-muted">{title}</h2>
+      <h2 className="text-[12px] font-semibold uppercase tracking-[.1em] text-muted">{title}</h2>
+      {subtitle && <p className="mt-1 text-[12.5px] text-muted">{subtitle}</p>}
+      <div className="mb-3" />
       <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {items.map((m) => render(m))}
       </div>
@@ -99,12 +110,21 @@ function ModuleCard({ m, action, locked }: { m: ModuleView; action: React.ReactN
       : m.state === 'available'
         ? { text: 'Available', style: { background: 'rgba(217,142,75,.16)', color: '#95571b' } }
         : { text: 'Locked', style: { background: 'rgba(120,116,108,.16)', color: '#6F6A60' } };
+  const highlight = m.suggested && m.state === 'available';
   return (
-    <div className={`flex min-h-[150px] flex-col rounded-2xl border border-line bg-surface p-[18px] ${locked ? 'opacity-70' : ''}`}>
+    <div
+      className={`flex min-h-[150px] flex-col rounded-2xl border bg-surface p-[18px] ${locked ? 'opacity-70' : ''} ${highlight ? 'border-brand' : 'border-line'}`}
+      style={highlight ? { boxShadow: '0 0 0 1px var(--brand) inset' } : undefined}
+    >
       <div className="mb-2.5 flex items-center gap-2.5">
         <span className="grid h-[38px] w-[38px] place-items-center rounded-[11px] text-brand" style={{ background: 'rgba(14,106,87,.10)' }}><C /></span>
         <span className="text-[15px] font-semibold">{m.name}</span>
-        <span className="ml-auto rounded-full px-2.5 py-[3px] text-[10.5px] font-bold uppercase tracking-[.04em]" style={badge.style}>{badge.text}</span>
+        <span className="ml-auto flex items-center gap-1.5">
+          {m.suggested && m.state === 'available' && (
+            <span className="rounded-full px-2.5 py-[3px] text-[10.5px] font-bold uppercase tracking-[.04em]" style={{ background: 'rgba(14,106,87,.12)', color: '#0E6A57' }}>Suggested</span>
+          )}
+          <span className="rounded-full px-2.5 py-[3px] text-[10.5px] font-bold uppercase tracking-[.04em]" style={badge.style}>{badge.text}</span>
+        </span>
       </div>
       <p className="mb-3.5 text-[13px] leading-[1.55] text-muted">{meta.desc}</p>
       <div className="mt-auto">{action}</div>
