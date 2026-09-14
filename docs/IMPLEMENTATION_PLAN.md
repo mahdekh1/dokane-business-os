@@ -671,7 +671,25 @@ allowed) is out of scope for 2.5 unless trivial — read-only for now.
 **Verify:** update name/language persists across reload; wrong current password →
 error; new password lets you log in.
 **Sync:** `be/025-profile` → commit to `main`.
-- [ ] Profile view/edit + password change work end-to-end.
+- [x] Profile view/edit + password change work end-to-end ✅ (2026-09-14: added
+  `User.language` (migration, both DBs); `PATCH /me` (firstName/lastName/phone/
+  language) + `POST /me/password` (argon2-verified current password → 204);
+  contracts `UpdateProfileInput`/`ChangePasswordInput` + `MeResponse.user` gains
+  phone/language. `/account` page (avatar menu) — Profile (name, phone, language
+  EN/AR/HE, email read-only) + Password cards. +5 API tests (defaults, update,
+  invalid language→400, wrong password→401, change→204 + login). **Verified
+  live**: saved phone + language on owner.a (persisted in DB). Full API suite: 43
+  green; web typecheck clean.)
+
+---
+
+## ✅ Phase 2.5 — COMPLETE (2026-09-14)
+
+IA + onboarding alignment done and verified live: onboarding collects business
+email + a required category (taxonomy + "Other"); category drives Modules-page
+suggestions; the console shell is now grouped/accordion nav with the Storefront +
+Sales Channels IA (each module a group with its own Settings); and every user has
+an Account/profile surface. Phase 3 builds module UIs on this IA.
 
 ---
 

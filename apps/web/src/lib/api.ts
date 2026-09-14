@@ -4,6 +4,7 @@ import type {
   AuthTokens,
   BrandingDto,
   BusinessDto,
+  ChangePasswordInput,
   CreateBusinessInput,
   LoginInput,
   MeResponse,
@@ -11,6 +12,7 @@ import type {
   PlatformBusinessDetail,
   SignupInput,
   UpdateBrandingInput,
+  UpdateProfileInput,
 } from '@dokane/contracts';
 import { getToken, getBusinessId } from './session';
 
@@ -79,6 +81,10 @@ export const api = {
   signup: (input: SignupInput) =>
     apiFetch<AuthTokens>('/auth/signup', { method: 'POST', body: input, noBusiness: true }),
   me: () => apiFetch<MeResponse>('/me', { noBusiness: true }),
+  updateProfile: (input: UpdateProfileInput) =>
+    apiFetch<MeResponse>('/me', { method: 'PATCH', body: input, noBusiness: true }),
+  changePassword: (input: ChangePasswordInput) =>
+    apiFetch<void>('/me/password', { method: 'POST', body: input, noBusiness: true }),
   modules: () => apiFetch<ModuleView[]>('/modules'),
   enableModule: (id: string) => apiFetch<ModuleView>(`/modules/${id}/enable`, { method: 'POST' }),
   plan: () => apiFetch<PlanSummary>('/billing/plan'),
