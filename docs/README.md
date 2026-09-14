@@ -40,6 +40,8 @@ frame everything else.
 | [DELIVERY.md](./DELIVERY.md) | Stack detail, delivery model, required skills (incl. UI design skills), environments, CI/CD |
 | [DESIGN.md](./DESIGN.md) | Platform design system — Modern lane, customizable brand kit, shell layouts |
 | [TEST_PLAN.md](./TEST_PLAN.md) | Testing strategy across unit/integration/E2E/security |
+| [ARCHITECTURE_REVIEW.md](./ARCHITECTURE_REVIEW.md) | Phase 1–2.5 MUST-requirement compliance ledger (security/architecture) + test coverage |
+| [PHASE_2_TEST_CHECKLIST.md](./PHASE_2_TEST_CHECKLIST.md) | Manual/visual test checklist for Phases 1–2.5 |
 | [MVP_SCOPE.md](./MVP_SCOPE.md) | One-page consolidation of every MVP decision |
 | [POST_MVP_CHANGES.md](./POST_MVP_CHANGES.md) | MVP features built in reduced form, and what changes when we grow past the MVP |
 | [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | Detailed step-by-step build plan; per-task prompts, verification, and the UI design-skill workflow |

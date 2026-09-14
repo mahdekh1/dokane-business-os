@@ -1,9 +1,13 @@
-# Phase 1–2 — Manual Test Checklist
+# Phase 1–2.5 — Manual Test Checklist
 
-Version: 1.0 · Date: 2026-09-14
+Version: 1.1 · Date: 2026-09-14
 
-Run these flows against the running app to verify Phases 1–2 (auth, tenancy,
-RBAC, modules, business lifecycle, onboarding, branding). Tick as you go.
+Run these flows against the running app to verify Phases 1–2.5 (auth, tenancy,
+RBAC, modules, business lifecycle, onboarding + business email/category, module
+suggestions, grouped console nav, branding, and the user account/profile). Tick
+as you go. Automated coverage for the security-critical rules lives in the API
+specs (see [ARCHITECTURE_REVIEW.md](./ARCHITECTURE_REVIEW.md)); this checklist is
+the manual/visual pass.
 
 ## Run it
 
@@ -37,10 +41,15 @@ Open **http://localhost:3000**.
 
 ## B. Onboarding + pending state
 - [ ] As the **new account** from A, click **Set up business** → `/onboarding`.
-- [ ] Submit with a blank name/address/phone → validation error (no create).
+- [ ] Submit with a blank name/address/phone/**email** → validation error (no create).
 - [ ] Enter a **Store URL** with spaces/caps → hint shown; only `a-z 0-9 -` accepted.
+- [ ] Pick a **Business category** from the list; choose **Other** → a "Tell us your
+      category" field appears and is required.
+- [ ] **Business email** is required and validated (a non-email is rejected).
 - [ ] Create the business → **"Waiting for approval"** screen (PENDING_APPROVAL).
 - [ ] Try the same Store URL again (another business) → "That store URL is taken".
+- [ ] As `admin@dokane.test`, open that business's **Review** page → the **Category**
+      (label, or the free text for Other) and **Business email** show correctly.
 
 ## C. Platform admin — gating + lifecycle
 - [ ] Log in as **`owner.a`** and visit `/admin` directly → bounced to `/dashboard` (not a platform admin).
@@ -63,6 +72,9 @@ Open **http://localhost:3000**.
 - [ ] Click **Enable** on an Available module (e.g. Notifications) → it becomes Active and appears in the sidebar nav.
 - [ ] Locked modules (Projects, AI on Growth) show **Upgrade to unlock** and can't be enabled.
 - [ ] As `owner.b` (Starter), fewer modules are available; more are Locked.
+- [ ] **Suggested for the category**: available modules that suit the business category
+      (e.g. Catalog + Mini-site for a Fashion/Starter business) float to the top with a
+      **Suggested** chip + highlight. Locked/active modules never show the chip.
 
 ## F. Branding
 - [ ] As `owner.a`, open **Settings** → `/settings/branding`.
@@ -76,10 +88,28 @@ Open **http://localhost:3000**.
 - [ ] Log in as `staff.a` → can see the dashboard but has fewer nav items / no roles or settings access where not permitted.
 - [ ] (API) A user cannot load another business's data by changing `X-Business-Id` — returns 403.
 
-## H. Console shell
+## H. Console shell + grouped nav (IA)
 - [ ] Sidebar nav is **built from enabled modules** (server-driven), not hard-coded.
+- [ ] Each module is a **collapsible group**; expanding it shows its sub-pages + a
+      **Settings** item. The active group auto-expands.
+- [ ] **Storefront** is one group (mini-site pages + online store); **Sales Channels**
+      is a separate group with In-store / Online Store / Connect to Marketplace.
+- [ ] The **Online Store** entry under Sales Channels deep-links into Storefront and
+      does **not** double-highlight or force the Channels group open.
+- [ ] Disabled modules (e.g. Projects/AI on Growth) show **no** group.
+- [ ] Sub-routes not built yet show a **"Coming soon"** placeholder; `/settings/branding`
+      still shows the real Branding screen.
 - [ ] Dashboard tiles + recent orders render (sample data, labelled).
 - [ ] Light/dark follows your OS theme.
+
+## I. Account / profile
+- [ ] Top-right **avatar → Account & profile** opens `/account`.
+- [ ] Edit **first/last name, phone, language** → **Save changes** → "Saved"; reload →
+      values persist.
+- [ ] **Email** is shown but read-only.
+- [ ] **Change password** with the wrong current password → "current password is
+      incorrect"; with the right one → "Password updated", and you can log in with the
+      new password (old one no longer works).
 
 ---
 
