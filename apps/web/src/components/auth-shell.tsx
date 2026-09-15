@@ -1,22 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Icon } from './icons';
 import { LogoMark } from './logo';
-
-function LangSwitch() {
-  return (
-    <button
-      type="button"
-      aria-label="Change language"
-      className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-[7px] text-[13px] text-muted transition-colors hover:border-line-strong hover:text-ink"
-    >
-      <Icon.globe width={15} height={15} />
-      English
-      <Icon.chevronDown width={11} height={11} />
-    </button>
-  );
-}
 
 export function AuthShell({ panel, children }: { panel: ReactNode; children: ReactNode }) {
   return (
@@ -40,9 +25,6 @@ export function AuthShell({ panel, children }: { panel: ReactNode; children: Rea
       </section>
 
       <section className="flex flex-col px-6 py-7 md:px-10">
-        <div className="flex justify-end">
-          <LangSwitch />
-        </div>
         <div className="m-auto w-full max-w-[400px] py-4">{children}</div>
       </section>
     </div>

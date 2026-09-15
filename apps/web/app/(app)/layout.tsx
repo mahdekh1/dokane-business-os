@@ -23,8 +23,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Explicit expand/collapse overrides; unset groups default to "open if active".
   const [openOverrides, setOpenOverrides] = useState<Record<string, boolean>>({});
+
+  // Close the mobile nav drawer whenever the route changes (a link was tapped).
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (!getToken()) {
@@ -158,7 +162,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="flex w-[256px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0]" style={{ background: 'var(--nav)' }}>
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} aria-hidden />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-[256px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0] transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ background: 'var(--nav)' }}
+      >
         <div className="flex items-center gap-2.5 px-2 pb-[14px] pt-1 text-[18px] font-bold" style={{ color: 'var(--on-brand)' }}>
           <LogoMark size={26} tone="var(--on-brand)" />
           Dokane
@@ -187,8 +197,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-6">
-          <div className="relative">
+        <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-4 md:px-6">
+          <div className="flex items-center gap-2.5">
+            <button type="button" aria-label="Open menu" onClick={() => setSidebarOpen(true)}
+              className="grid h-[38px] w-[38px] flex-none place-items-center rounded-[10px] border border-line text-muted hover:text-ink md:hidden">
+              <Icon.menu />
+            </button>
+            <div className="relative">
             <button onClick={() => setSwitcherOpen((v) => !v)} className="flex items-center gap-2.5 rounded-xl border border-line py-1.5 pl-1.5 pr-3 text-ink hover:border-line-strong">
               <span className="grid h-[30px] w-[30px] place-items-center rounded-lg bg-brand text-[12px] font-bold text-on-brand">
                 {initials(current?.name ?? '?')}
@@ -213,15 +228,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 ))}
               </div>
             )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <button className="rounded-full bg-brand px-[15px] py-[9px] text-[13.5px] font-semibold text-on-brand hover:bg-brand-2">
-              <span className="inline-flex items-center gap-1.5"><Icon.plus width={15} height={15} /> New</span>
-            </button>
-            <button aria-label="Notifications" className="grid h-[38px] w-[38px] place-items-center rounded-[10px] border border-line text-muted hover:text-ink">
-              <Icon.bell />
-            </button>
             <div className="relative">
               <button aria-label="Account menu" onClick={() => setUserMenuOpen((v) => !v)}
                 className="grid h-[34px] w-[34px] place-items-center rounded-full bg-accent text-[12.5px] font-bold" style={{ color: '#3a2408' }}>

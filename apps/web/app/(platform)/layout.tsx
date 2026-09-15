@@ -25,6 +25,9 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [ready, setReady] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (!getToken()) {
@@ -60,7 +63,13 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="flex w-[256px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0]" style={{ background: 'var(--nav)' }}>
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} aria-hidden />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-[256px] flex-none flex-col p-[14px] pt-[18px] text-[#C9D6D0] transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ background: 'var(--nav)' }}
+      >
         <div className="flex items-center gap-2.5 px-2 pt-1 text-[18px] font-bold" style={{ color: 'var(--on-brand)' }}>
           <LogoMark size={26} tone="var(--on-brand)" /> Dokane
         </div>
@@ -84,9 +93,15 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-6">
-          <div className="text-[14px] font-semibold">
-            {headerTitle} <span className="font-normal text-muted">· all businesses</span>
+        <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-4 md:px-6">
+          <div className="flex items-center gap-2.5">
+            <button type="button" aria-label="Open menu" onClick={() => setSidebarOpen(true)}
+              className="grid h-[38px] w-[38px] flex-none place-items-center rounded-[10px] border border-line text-muted hover:text-ink md:hidden">
+              <Icon.menu />
+            </button>
+            <div className="text-[14px] font-semibold">
+              {headerTitle} <span className="font-normal text-muted">· all businesses</span>
+            </div>
           </div>
 
           <div className="relative">
