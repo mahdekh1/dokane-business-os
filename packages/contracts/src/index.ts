@@ -14,3 +14,4 @@ export * from './business';
 export * from './modules';
 export * from './branding';
 export * from './catalog';
+export * from './inventory';

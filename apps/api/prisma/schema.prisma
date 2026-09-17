@@ -346,3 +346,56 @@ model OfferingMedia {
   @@index([offeringId])
   @@map("offering_media")
 }
+
+// ---- Inventory (Phase 3, Task 3.3) ----
+
+model Location {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  name       String
+  code       String?
+  status     String   @default("ACTIVE")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId])
+  @@map("locations")
+}
+
+model InventoryItem {
+  id                String   @id @default(uuid()) @db.Uuid
+  businessId        String   @db.Uuid
+  locationId        String   @db.Uuid
+  offeringId        String?  @db.Uuid
+  variantId         String?  @db.Uuid
+  stockableKey      String // 'offering:<id>' | 'variant:<id>'
+  quantity          Int      @default(0)
+  lowStockThreshold Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([businessId, locationId, stockableKey])
+  @@index([businessId, locationId])
+  @@map("inventory_items")
+}
+
+model InventoryMovement {
+  id            String   @id @default(uuid()) @db.Uuid
+  businessId    String   @db.Uuid
+  locationId    String   @db.Uuid
+  offeringId    String?  @db.Uuid
+  variantId     String?  @db.Uuid
+  movementType  String // INITIAL_STOCK | ADJUSTMENT | SALE | RETURN | TRANSFER_IN | TRANSFER_OUT
+  quantityDelta Int
+  reason        String?
+  referenceType String?
+  referenceId   String?
+  createdBy     String?  @db.Uuid
+  createdAt     DateTime @default(now())
+
+  @@index([businessId, locationId, createdAt])
+  @@index([businessId, offeringId])
+  @@index([businessId, variantId])
+  @@map("inventory_movements")
+}

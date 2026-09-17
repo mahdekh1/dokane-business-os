@@ -37,6 +37,8 @@ export const MODULE_PERMISSIONS: PermissionDef[] = [
   { code: 'catalog.offerings.view', moduleId: 'catalog', description: 'View products' },
   { code: 'catalog.offerings.manage', moduleId: 'catalog', description: 'Create, edit and archive products' },
   { code: 'catalog.categories.manage', moduleId: 'catalog', description: 'Manage product categories' },
+  { code: 'inventory.view', moduleId: 'inventory', description: 'View stock and movements' },
+  { code: 'inventory.manage', moduleId: 'inventory', description: 'Adjust stock and thresholds' },
 ];
 
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [

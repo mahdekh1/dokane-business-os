@@ -778,7 +778,14 @@ checks.
 > concurrent adjustments don't lose updates (row lock).
 **Verify:** `pnpm --filter api test inventory`
 **Sync:** `be/03-inventory` → PR → merge.
-- [ ] Every change writes a movement; concurrency safe
+- [x] Every change writes a movement; concurrency safe ✅ (2026-09-17: Location
+  (default per business, auto-created), InventoryItem, InventoryMovement; migration
+  both DBs. Single `adjustStock` path — upsert item, atomic conditional decrement
+  (oversell-proof) or increment, and a movement, all in one .
+  INITIAL_STOCK/ADJUSTMENT now; SALE/RETURN come from orders. Low-stock threshold
+  + `?lowStock` query. inventory.view/manage perms, @RequireEntitlement.
+  7 tests: movement-per-change, oversell→409, low-stock flag, 6 concurrent
+  increments never lose updates, exactly-one-stockable, A→B isolation.)
 
 ### Task 3.4 — Media storage driver + upload endpoint
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/media/*`,
