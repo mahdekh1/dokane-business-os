@@ -30,6 +30,8 @@ export const CORE_PERMISSIONS: PermissionDef[] = [
   { code: 'reports.view', moduleId: 'core', description: 'View reports' },
   { code: 'audit.view', moduleId: 'core', description: 'View audit log' },
   { code: 'storefront.manage', moduleId: 'core', description: 'Manage the mini-site' },
+  { code: 'customers.view', moduleId: 'core', description: 'View customers' },
+  { code: 'customers.manage', moduleId: 'core', description: 'Create and edit customers' },
 ];
 
 /** Module-contributed permissions (business-scoped). Grow as modules are built. */

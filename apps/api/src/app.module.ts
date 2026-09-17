@@ -13,6 +13,8 @@ import { BusinessesModule } from './modules/businesses/businesses.module';
 import { BrandingModule } from './modules/branding/branding.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { MediaModule } from './modules/media/media.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -34,6 +36,8 @@ import { HealthController } from './health.controller';
     BrandingModule,
     CatalogModule,
     InventoryModule,
+    MediaModule,
+    CustomersModule,
   ],
   controllers: [HealthController],
   providers: [

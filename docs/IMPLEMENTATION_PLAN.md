@@ -806,7 +806,13 @@ never trust filename; stream, don't buffer whole files into memory.
 > generated key ignores the client filename.
 **Verify:** `pnpm --filter api test media`
 **Sync:** `be/03-media` → PR → merge.
-- [ ] Uploads validated + tenant-scoped via driver
+- [x] Uploads validated + tenant-scoped via driver ✅ (2026-09-17: StorageDriver
+  interface + LocalDiskDriver (server-generated tenant key, path-traversal-safe) +
+  S3Driver stub, selected by STORAGE_DRIVER; kept in apps/api/src/modules/media
+  for now. POST /catalog/offerings/:id/media (multipart, MIME/size validated,
+  5 MB cap) → OfferingMedia row; public GET /api/v1/public/media/* serves it.
+  5 tests: filename ignored + tenant-scoped key, non-image→400, public serve,
+  traversal blocked, A→B isolation.)
 
 ### Task 3.5 — Catalog media wire-up review
 **Owner:** Claude Code · **Deliverable:** confirm the catalog UI (3.2) uploads
@@ -837,7 +843,10 @@ CRM (Task 5.1) adds leads, the pipeline and source analytics **on top of this**.
 > and dedupe-by-contact.
 **Verify:** `pnpm --filter api test customers`
 **Sync:** `be/03-customers` → PR → merge.
-- [ ] Core customers table + API present before Orders
+- [x] Core customers table + API present before Orders ✅ (2026-09-17: core
+  `customers` table + CRUD (`customers.view/manage`, no entitlement gate) +
+  `getOrCreateByContact` used by Orders/CRM. 6 tests: create/search/update,
+  A→B isolation, dedupe by email/phone.)
 
 ---
 

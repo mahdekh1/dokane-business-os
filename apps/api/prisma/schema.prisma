@@ -399,3 +399,21 @@ model InventoryMovement {
   @@index([businessId, variantId])
   @@map("inventory_movements")
 }
+
+// ---- Customers (Phase 3, Task 3.6) — core registry (CRM builds on this) ----
+
+model Customer {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  name       String
+  email      String?
+  phone      String?
+  address    String?
+  source     String   @default("MANUAL")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId, email])
+  @@index([businessId, phone])
+  @@map("customers")
+}
