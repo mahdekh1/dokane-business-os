@@ -6,10 +6,15 @@ import type {
   BusinessDto,
   CategoryDto,
   ChangePasswordInput,
+  AdjustStockInput,
   CreateBusinessInput,
   CreateCategoryInput,
   CreateOfferingInput,
+  InventoryItemDto,
+  InventoryListResult,
+  LocationDto,
   LoginInput,
+  MovementListResult,
   MeResponse,
   OfferingDto,
   OfferingListResult,
@@ -154,6 +159,24 @@ export const api = {
       create: (input: CreateCategoryInput) =>
         apiFetch<CategoryDto>('/catalog/categories', { method: 'POST', body: input }),
     },
+  },
+
+  inventory: {
+    list: (q: Record<string, string | number | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<InventoryListResult>(`/inventory${s ? `?${s}` : ''}`);
+    },
+    movements: (q: Record<string, string | number | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<MovementListResult>(`/inventory/movements${s ? `?${s}` : ''}`);
+    },
+    locations: () => apiFetch<LocationDto[]>('/inventory/locations'),
+    adjust: (input: AdjustStockInput) =>
+      apiFetch<InventoryItemDto>('/inventory/adjustments', { method: 'POST', body: input }),
   },
 
   createBusiness: (input: CreateBusinessInput) =>

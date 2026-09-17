@@ -63,8 +63,10 @@ export type InventoryListResult = z.infer<typeof InventoryListResult>;
 export const MovementDto = z.object({
   id: z.string(),
   locationId: z.string(),
+  locationName: z.string(),
   offeringId: z.string().nullable(),
   variantId: z.string().nullable(),
+  label: z.string(),
   movementType: MovementTypeEnum,
   quantityDelta: z.number().int(),
   reason: z.string().nullable(),

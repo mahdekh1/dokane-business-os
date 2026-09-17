@@ -228,12 +228,17 @@ export class InventoryService {
       }),
       this.prisma.inventoryMovement.count({ where }),
     ]);
+    const locations = await this.prisma.location.findMany({ where: { businessId: ctx.businessId } });
+    const locName = new Map(locations.map((l) => [l.id, l.name]));
+    const labels = await this.labelsFor(ctx.businessId, rows);
     return {
       items: rows.map((m) => ({
         id: m.id,
         locationId: m.locationId,
+        locationName: locName.get(m.locationId) ?? '',
         offeringId: m.offeringId,
         variantId: m.variantId,
+        label: labels.get(m.id) ?? '',
         movementType: m.movementType as MovementDto['movementType'],
         quantityDelta: m.quantityDelta,
         reason: m.reason,
