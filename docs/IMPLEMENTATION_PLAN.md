@@ -756,7 +756,17 @@ canonical key helper from contracts to preserve rows; never send `business_id`.
 > endpoint. RTL-ready, translation keys.
 **Verify (Claude):** typecheck + web tests; manual variant edit preserves rows.
 **Sync:** `ui/03-catalog` → review → merge.
-- [ ] Catalog UI works; variant editing preserves rows
+- [x] Catalog UI works; variant editing preserves rows ✅ (2026-09-17:
+  `apps/web/app/(app)/catalog/{page,new/page,edit/[id]/page}.tsx` +
+  `components/catalog/offering-form.tsx`; `api.catalog.*` client +
+  `apiUpload` FormData helper. Paginated/searchable/type-filtered offerings
+  table with empty state; create/edit form with physical|digital selector,
+  money input storing integer minor units, inline category create, image
+  upload wired to the media endpoint (Task 3.5). Variant matrix editor keys
+  every row by the contracts `variantKey` helper so price/SKU survive
+  attribute edits. Verified live as owner.a: created "Classic Tee" with two
+  variants — the API stored canonical sorted keys (`color:black|size:L`)
+  regardless of input attribute order; list + form + variant matrix render.)
 
 ### Task 3.3 — Inventory (items, movements, low-stock)
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/inventory/*`, schema
@@ -822,7 +832,13 @@ buffering.
 use multipart to the API and render `/api/v1/public/media/*` URLs; no base64
 blobs in state.
 **Verify:** upload a product image; it persists and renders after reload.
-- [ ] Media wired correctly
+- [x] Media wired correctly ✅ (2026-09-17: the form holds `File` objects and
+  uploads multipart via `api.catalog.uploadMedia` → `POST /catalog/offerings/
+  :id/media` — no base64 in state. Server returns a `/api/v1/public/media/…`
+  path; a `mediaUrl()` helper resolves it against the API origin (dev
+  cross-origin :3000→:3001) and leaves it relative in same-origin production.
+  Verified: uploaded a PNG to "Classic Tee", it persisted, served 200
+  image/png, and rendered in the list after reload.)
 
 ### Task 3.6 — Customers (core table + minimal API)
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/customers/*`, schema

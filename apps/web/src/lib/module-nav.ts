@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: 'catalog',
     requires: ['catalog'],
     children: [
-      { label: 'Products & services', href: '/catalog' },
+      { label: 'Products', href: '/catalog' },
       { label: 'Categories', href: '/catalog/categories' },
       { label: 'Settings', href: '/catalog/settings' },
     ],

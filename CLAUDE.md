@@ -99,6 +99,12 @@ their own scaffolded modules (own domains later). **Inventory** (locations, one
 `adjustStock` path writes a movement per change, oversell-proof). **Media** storage
 driver (local disk now, S3-ready) + upload + public serve. Core **Customers**
 registry (`getOrCreateByContact`). All tenant-scoped + A/B-tested (API suite 83/13).
-**Next in Phase 3**: Catalog UI (3.2) + media wire-up (3.5), then Phase 4 (Orders).
+**Catalog UI ✅** (3.2 + 3.5): offerings list (search/filter/paginate/empty
+state), create/edit form (physical|digital, money-in-minor-units input, inline
+category create, variant-matrix editor keyed by the contracts `variantKey`
+helper so price/SKU survive attribute edits), image upload wired to the media
+endpoint; a `mediaUrl()` helper resolves public media paths against the API
+origin in dev and keeps them relative in prod. Verified live as owner.a.
+**Next in Phase 3**: none — Phase 4 (Orders & Money).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.
