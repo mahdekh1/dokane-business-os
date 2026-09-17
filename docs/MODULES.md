@@ -106,7 +106,9 @@ cross-cutting domains:
 
 | Domain | Owning module |
 |--------|---------------|
-| Offerings (products/services, types, variants) | Catalog |
+| Products — physical + digital goods, types, variants | Catalog |
+| Bookable services & appointments | Services |
+| Courses, programs & enrollments | Courses & Programs |
 | Stock, movements, low-stock | Inventory |
 | Sales channels + per-channel reporting | Sales Channels |
 | Orders (manual + online), fulfillment, payment status | Orders (within/near Online Store; see [ORDERS_AND_MONEY.md](./ORDERS_AND_MONEY.md)) |

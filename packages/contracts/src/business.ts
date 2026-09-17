@@ -41,8 +41,8 @@ export type BusinessCategory = z.infer<typeof BusinessCategoryEnum>;
  */
 export const OFFERING_TYPES = [
   { key: 'physical', label: 'Physical goods', hint: 'Items you stock and ship (e.g. clothing).', suggests: ['catalog', 'inventory', 'online_store', 'channels'] },
-  { key: 'services', label: 'Services', hint: 'Appointments or work you perform (e.g. a clinic, a salon).', suggests: ['calendar', 'crm'] },
-  { key: 'courses', label: 'Courses & programs', hint: 'Enrollments, classes, memberships.', suggests: ['catalog', 'calendar', 'crm'] },
+  { key: 'services', label: 'Services', hint: 'Appointments or work you perform (e.g. a clinic, a salon).', suggests: ['services', 'calendar', 'crm'] },
+  { key: 'courses', label: 'Courses & programs', hint: 'Enrollments, classes, memberships.', suggests: ['courses', 'calendar', 'crm'] },
   { key: 'digital', label: 'Digital products', hint: 'Downloadable or virtual goods (files, licenses).', suggests: ['catalog', 'online_store'] },
 ] as const;
 

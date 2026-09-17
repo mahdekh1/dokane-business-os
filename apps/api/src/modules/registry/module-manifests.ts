@@ -80,6 +80,22 @@ export const MODULE_MANIFESTS: ModuleManifest[] = [
     permissions: [],
   },
   {
+    id: 'services',
+    name: 'Services',
+    version: '1.0.0',
+    dependsOn: [],
+    requiredEntitlement: 'services',
+    permissions: [],
+  },
+  {
+    id: 'courses',
+    name: 'Courses & Programs',
+    version: '1.0.0',
+    dependsOn: [],
+    requiredEntitlement: 'courses',
+    permissions: [],
+  },
+  {
     id: 'calendar',
     name: 'Calendar',
     version: '1.0.0',
@@ -99,9 +115,13 @@ export const MODULE_MANIFESTS: ModuleManifest[] = [
 
 /** Plan tier → entitlement keys it grants. Mirrors PRD.md §3. */
 export const PLAN_ENTITLEMENTS: Record<string, string[]> = {
-  STARTER: ['catalog', 'mini_site'],
+  // services + courses are core offering domains available on every tier, so a
+  // service- or course-only business is never left with nothing to sell.
+  STARTER: ['catalog', 'services', 'courses', 'mini_site'],
   GROWTH: [
     'catalog',
+    'services',
+    'courses',
     'mini_site',
     'channels',
     'online_store',
@@ -113,6 +133,8 @@ export const PLAN_ENTITLEMENTS: Record<string, string[]> = {
   ],
   BUSINESS: [
     'catalog',
+    'services',
+    'courses',
     'mini_site',
     'channels',
     'online_store',

@@ -99,8 +99,16 @@ A business does not only sell physical products. The sellable-thing model is
 - **Simple or variant** — an offering may have a variant matrix (e.g. size ×
   color), each variant with its own SKU/barcode/price/stock.
 
-A store enables Online Store + Inventory; a clinic enables Calendar + Programs —
-both draw from the same Offerings core.
+A store enables Online Store + Inventory; a clinic enables Calendar + Programs.
+
+**Catalog vs Services vs Courses (agreed 2026-09-17).** The **Catalog** module
+covers **physical + digital goods** only. **Services** (bookable appointments) and
+**Courses & Programs** (enrollments) are their **own modules** with their own
+domain models — not catalog offerings — so each stays focused. All three are core
+offering domains, available on every plan tier, and map to the onboarding
+offering types. The `type` discriminator below still describes the underlying
+sellable, but the console surfaces goods in Catalog and services/courses in their
+own modules.
 
 **Onboarding captures the business's offering types** (agreed 2026-09-14): a
 required multi-select of **Physical goods · Services · Courses & programs ·

@@ -59,6 +59,28 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'services',
+    label: 'Services',
+    icon: 'services',
+    requires: ['services'],
+    children: [
+      { label: 'Services', href: '/services' },
+      { label: 'Bookings', href: '/services/bookings' },
+      { label: 'Settings', href: '/services/settings' },
+    ],
+  },
+  {
+    id: 'courses',
+    label: 'Courses & Programs',
+    icon: 'courses',
+    requires: ['courses'],
+    children: [
+      { label: 'Courses', href: '/courses' },
+      { label: 'Enrollments', href: '/courses/enrollments' },
+      { label: 'Settings', href: '/courses/settings' },
+    ],
+  },
+  {
     id: 'inventory',
     label: 'Inventory',
     icon: 'inventory',

@@ -13,6 +13,8 @@ const INFO: Record<string, { desc: string; icon: IconName }> = {
   accounting: { desc: 'Income, expenses and receivables.', icon: 'accounting' },
   project_management: { desc: 'Projects and tasks for your team.', icon: 'projects' },
   mini_site: { desc: 'Your public pages and SEO.', icon: 'globe' },
+  services: { desc: 'Bookable services and appointments.', icon: 'services' },
+  courses: { desc: 'Courses, programs and enrollments.', icon: 'courses' },
   channels: { desc: 'Store, in-store and future marketplace channels.', icon: 'store' },
   notifications: { desc: 'WhatsApp and email messages to customers.', icon: 'bell' },
   calendar: { desc: 'Appointments and sessions; sync Google or Apple Calendar.', icon: 'calendar' },

@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 const SECTION: Record<string, string> = {
   storefront: 'Storefront',
   catalog: 'Catalog',
+  services: 'Services',
+  courses: 'Courses & Programs',
   inventory: 'Inventory',
   channels: 'Sales Channels',
   crm: 'Customers / CRM',

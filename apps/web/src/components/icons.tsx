@@ -37,6 +37,18 @@ export const Icon = {
       <path d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   ),
+  services: (p: P) => (
+    <svg {...base(p)}>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  ),
+  courses: (p: P) => (
+    <svg {...base(p)}>
+      <path d="M12 4 2 9l10 5 10-5-10-5z" />
+      <path d="M6 11v4c0 1.5 3 3 6 3s6-1.5 6-3v-4" />
+    </svg>
+  ),
   catalog: (p: P) => (
     <svg {...base(p)}>
       <path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7" />
