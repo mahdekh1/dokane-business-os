@@ -8,7 +8,8 @@ Purpose: verify what's built through **Phase 2.5** against the mandatory rules i
 **✅ Met** · **🟡 Deferred** (correct-by-construction now; enforcement/feature lands
 in a named later phase, no live gap) · **⛔ Gap** (must fix now).
 
-No **⛔** items outstanding. Automated coverage: **57 tests / 9 suites** green.
+No **⛔** items outstanding. Automated coverage: **83 tests / 13 suites** green
+(Phase 3 backend included — see the Phase 3 update below).
 
 ---
 
@@ -35,14 +36,14 @@ does not belong to yields `403` without revealing existence, and `SUSPENDED` /
 | §1 | Tenant context derived from membership, never from client input | ✅ | `tenant.guard.ts` resolves membership from `X-Business-Id`, validated against the user | `security.spec` (A→B on every endpoint → 403), `rbac-tenancy.spec` |
 | §1 | Never trust a `business_id` in body/query/URL | ✅ | `createBusiness` takes no tenant id (derived from caller); tenant routes ignore body ids | `security.spec` "createBusiness ignores injected status/id" |
 | §2.1 | Services take a **context object**, not a raw request id | ✅ | Controllers pass `@Ctx() TenantContext`; services never read `X-Business-Id` | `businesses.service.ts`, `registry.service.ts` |
-| §2.2 | Tenant-scoped unique indexes / FKs | 🟡 | `Business.slug` unique, `(businessId,userId)` membership unique, `(businessId,moduleId)` module-state unique. `(business_id, sku)` etc. land with **Catalog/Inventory (Phase 3)** | `schema.prisma` |
-| §2.4 | Every tenant-owned module has A/B isolation tests | 🟡 | Every tenant endpoint that exists now is attacked; offerings/inventory/orders get their own A/B tests when built (**Phase 3+**) | `security.spec`, `rbac-tenancy.spec` |
+| §2.2 | Tenant-scoped unique indexes / FKs | ✅ | Catalog `(business_id, sku)` / `(business_id, barcode)`; inventory `(business_id, location_id, stockable)`; variant `(offering_id, key)`; plus the Phase-1 uniques | `schema.prisma` |
+| §2.4 | Every tenant-owned module has A/B isolation tests | ✅ (built modules) | Catalog, Inventory, Media, Customers each attack A→B; Orders get theirs when built (**Phase 4**) | `catalog/inventory/media/customers.spec`, `security.spec` |
 | §3 | Entitlement **and** permission both enforced server-side | ✅ | `TenantGuard` enforces `@RequirePermission`; `registry.enable` + `EntitlementGuard` enforce entitlement | `security.spec` (NOT_ENTITLED), `registry.spec`, `rbac-tenancy.spec` (STAFF refused) |
 | §3 | Backend authz mandatory; UI hiding is not a control | ✅ | All guards server-side; the Modules page cannot enable a locked module (server rejects) | `security.spec`, `registry.spec` |
 | §3 | Reject unknown/dangerous fields (mass assignment) | ✅ | `ZodValidationPipe` strips undeclared keys; every write body is Zod-validated | `security.spec` (injected `status`/`isPlatformAdmin` ignored) |
 | §4 | Suspended / non-approved businesses cannot transact | 🟡 | `TenantGuard` blocks `SUSPENDED`/`REJECTED` now (tested). `PENDING` has **no subscription** (approve provisions it) so module enable is naturally `NOT_ENTITLED`; an explicit APPROVED-gate for transactional writes lands with **Orders/Inventory (Phase 3–4)** | `security.spec` (SUSPENDED → `BUSINESS_INACTIVE`), `businesses.spec` (invalid transition) |
 | §4 | Lifecycle state machine is a single enum, transitions validated | ✅ | `businesses.service.transition()` allow-lists source states per action | `businesses.spec` (approve-when-approved → 400) |
-| §5 | Media via storage-driver abstraction, tenant-scoped keys, MIME/size validation | 🟡 | No uploads in Phase 1–2.5; the driver + endpoint are **Phase 3.4** | — |
+| §5 | Media via storage-driver abstraction, tenant-scoped keys, MIME/size validation | ✅ | `StorageDriver` + `LocalDiskDriver` (server-generated tenant key, traversal-safe) + `S3Driver` stub; upload validates MIME + 5 MB | `media.spec` |
 | §6 | AI calls tools that re-check tenant+permission; data minimization | 🟡 | AI is **Phase 8**; not present | — |
 | §7 | Rate limiting | ✅ | `ThrottlerModule.forRoot([{ ttl: 60s, limit: 100 }])` + global `ThrottlerGuard` | (config) |
 | §7 | Password hashing; secrets never committed; parameterized queries | ✅ | argon2 (`password.service.ts`, `me.controller.ts`); `.env*` gitignored; Prisma (parameterized) | `auth.service.spec`, `me.spec` |
@@ -60,7 +61,7 @@ does not belong to yields `403` without revealing existence, and `SUSPENDED` /
 | Never move authorization to the frontend | ✅ | Guards are server-side; UI mirrors, never gates |
 | Never trust client-supplied prices/totals | 🟡 | No money yet (**Phase 4**); pricing math is server-derived by design |
 | Never bypass transactions | ✅ | `createBusiness` writes business + membership in one `$transaction` |
-| Never mutate inventory without a movement | 🟡 | Inventory is **Phase 3**; rule to be enforced there |
+| Never mutate inventory without a movement | ✅ | `adjustStock` is the one path; it writes a movement in the same transaction (tested) |
 | Never delete historical orders | 🟡 | Orders are **Phase 4**; soft-delete-only policy pre-agreed |
 | Never connect AI directly to SQL | 🟡 | AI is **Phase 8** |
 | Never hard-code payment/notification provider | ✅ | None hard-coded; adapters are pluggable by design |
@@ -107,3 +108,29 @@ the APPROVED-gate for transactional writes, integer-minor-unit money, and
 movement-on-every-stock-change (per [TEST_PLAN.md](./TEST_PLAN.md) §5 and this
 review). Recommended to keep this document updated per phase as the compliance
 ledger.
+
+---
+
+## 7. Phase 3 update (2026-09-17) — Catalog & Inventory backend
+
+Scope decision: **Catalog = physical + digital goods**; **Services** and
+**Courses/Programs** are their own (scaffolded) modules. Backend built + tested;
+Catalog UI (3.2) + media wire-up (3.5) remain.
+
+New MUST items now satisfied (flipped above):
+- **Tenant-scoped unique indexes** — catalog `(business_id, sku/barcode)`,
+  inventory `(business_id, location_id, stockable)`, variant `(offering_id, key)`.
+- **Per-module A/B isolation tests** — catalog, inventory, media, customers each
+  attack A→B (read/modify/upload of another tenant's data → refused).
+- **Media storage-driver abstraction** — `StorageDriver` + local/S3 drivers;
+  server-generated tenant keys; MIME + size validation; traversal blocked.
+- **Movement on every stock change** — single `adjustStock` path writes a movement
+  in the same transaction; negative deltas are oversell-proof and concurrency-safe.
+
+New suites: `catalog.spec` (9), `inventory.spec` (7), `media.spec` (5),
+`customers.spec` (6). Full API suite **83 tests / 13 suites** green.
+
+Still deferred to their phase: integer-minor-unit **money** and the APPROVED-gate
+for **transactional writes** (Orders, Phase 4); AI tool authz (Phase 8). Note:
+catalog/inventory writes are configuration (products, stock), not money movement;
+the APPROVED-gate matters once orders/payments exist.

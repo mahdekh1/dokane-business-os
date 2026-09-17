@@ -93,6 +93,12 @@ placeholder via `app/(app)/[...slug]`. Design system in `docs/DESIGN.md` (Modern
 lane). Dev logins after `pnpm --filter @dokane/api seed`: admin@dokane.test
 (platform), owner.a@dokane.test (Growth), owner.b@dokane.test (Starter),
 owner.c@dokane.test (pending), staff.a@dokane.test (all `password123`).
-**Next: Phase 3** (Catalog & Inventory) — build module UIs on the Phase 2.5 IA.
+**Phase 3 ⏳ (backend done)**: **Catalog** = physical + digital **goods** (offerings,
+variants on a canonical `variantKey`, categories); **Services** + **Courses** are
+their own scaffolded modules (own domains later). **Inventory** (locations, one
+`adjustStock` path writes a movement per change, oversell-proof). **Media** storage
+driver (local disk now, S3-ready) + upload + public serve. Core **Customers**
+registry (`getOrCreateByContact`). All tenant-scoped + A/B-tested (API suite 83/13).
+**Next in Phase 3**: Catalog UI (3.2) + media wire-up (3.5), then Phase 4 (Orders).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.
