@@ -32,6 +32,13 @@ export const CORE_PERMISSIONS: PermissionDef[] = [
   { code: 'storefront.manage', moduleId: 'core', description: 'Manage the mini-site' },
 ];
 
+/** Module-contributed permissions (business-scoped). Grow as modules are built. */
+export const MODULE_PERMISSIONS: PermissionDef[] = [
+  { code: 'catalog.offerings.view', moduleId: 'catalog', description: 'View products' },
+  { code: 'catalog.offerings.manage', moduleId: 'catalog', description: 'Create, edit and archive products' },
+  { code: 'catalog.categories.manage', moduleId: 'catalog', description: 'Manage product categories' },
+];
+
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [
   { code: 'platform.businesses.view', moduleId: 'platform', description: 'View businesses' },
   { code: 'platform.businesses.approve', moduleId: 'platform', description: 'Approve businesses' },
@@ -41,8 +48,14 @@ export const PLATFORM_PERMISSIONS: PermissionDef[] = [
   { code: 'platform.audit.view', moduleId: 'platform', description: 'View platform audit' },
 ];
 
-export const ALL_PERMISSIONS: PermissionDef[] = [
+/** Every business-scoped permission (core + module-contributed). OWNER gets all. */
+export const BUSINESS_PERMISSIONS: PermissionDef[] = [
   ...CORE_PERMISSIONS,
+  ...MODULE_PERMISSIONS,
+];
+
+export const ALL_PERMISSIONS: PermissionDef[] = [
+  ...BUSINESS_PERMISSIONS,
   ...PLATFORM_PERMISSIONS,
 ];
 

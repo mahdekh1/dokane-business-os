@@ -13,3 +13,4 @@ export * from './me';
 export * from './business';
 export * from './modules';
 export * from './branding';
+export * from './catalog';

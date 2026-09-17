@@ -11,6 +11,7 @@ import { RbacModule } from './modules/rbac/rbac.module';
 import { RegistryModule } from './modules/registry/registry.module';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { BrandingModule } from './modules/branding/branding.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -30,6 +31,7 @@ import { HealthController } from './health.controller';
     RegistryModule,
     BusinessesModule,
     BrandingModule,
+    CatalogModule,
   ],
   controllers: [HealthController],
   providers: [

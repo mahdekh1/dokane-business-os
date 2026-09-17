@@ -731,7 +731,15 @@ it('matches a variant regardless of attribute key order', () => {
 pnpm --filter api test catalog
 ```
 **Sync:** `be/03-catalog` → PR → merge.
-- [ ] Catalog tests pass (variant key, uniqueness, isolation)
+- [x] Catalog tests pass (variant key, uniqueness, isolation) ✅ (2026-09-17:
+  catalog = **physical + digital** goods (services/courses are their own modules,
+  per owner decision). Contracts (offerings/variants/categories, `variantKey`),
+  schema (categories/offerings/offering_variants/offering_media, migration both
+  DBs), CatalogService + controller (@RequireEntitlement('catalog') +
+  catalog.offerings.* perms; OWNER now gets all business perms). Tenant-scoped
+  `(business_id, sku/barcode)` uniqueness; variants matched on canonical
+  `variantKey`; soft-delete. 9 tests: key stability, canonical keys, dup SKU→409,
+  cross-tenant SKU ok, A→B isolation (404), variant-row preservation on update.)
 
 ### Task 3.2 — Catalog UI
 **Owner:** Claude Code (UI) · **Files:** `apps/web/app/(app)/catalog/*`.

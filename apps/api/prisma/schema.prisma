@@ -262,3 +262,87 @@ model AuditLog {
   @@index([businessId, createdAt])
   @@map("audit_logs")
 }
+
+// ---- Catalog (Phase 3, Task 3.1) — physical + digital goods ----
+
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  name        String
+  slug        String
+  description String?
+  parentId    String?  @db.Uuid
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  offerings   Offering[]
+
+  @@unique([businessId, slug])
+  @@index([businessId])
+  @@map("categories")
+}
+
+model Offering {
+  id             String   @id @default(uuid()) @db.Uuid
+  businessId     String   @db.Uuid
+  categoryId     String?  @db.Uuid
+  type           String // 'physical' | 'digital'
+  name           String
+  description    String?
+  sku            String?
+  barcode        String?
+  price          Int // minor units
+  cost           Int?
+  trackInventory Boolean  @default(false)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  category       Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  variants       OfferingVariant[]
+  media          OfferingMedia[]
+
+  @@unique([businessId, sku])
+  @@unique([businessId, barcode])
+  @@index([businessId, active])
+  @@index([businessId, categoryId])
+  @@map("offerings")
+}
+
+model OfferingVariant {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  offeringId String   @db.Uuid
+  name       String?
+  sku        String?
+  barcode    String?
+  price      Int
+  attributes Json
+  key        String // canonical sorted attribute key
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  @@unique([offeringId, key])
+  @@unique([businessId, sku])
+  @@index([offeringId])
+  @@map("offering_variants")
+}
+
+model OfferingMedia {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  offeringId String   @db.Uuid
+  storageKey String
+  sortOrder  Int      @default(0)
+  altText    String?
+  createdAt  DateTime @default(now())
+
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  @@index([offeringId])
+  @@map("offering_media")
+}

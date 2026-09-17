@@ -9,7 +9,7 @@ import type { TenantContext } from '../../common/tenant-context';
 import { AuditService } from '../audit/audit.service';
 import {
   ALL_PERMISSIONS,
-  CORE_PERMISSIONS,
+  BUSINESS_PERMISSIONS,
   PLATFORM_PERMISSIONS,
   SYSTEM_ROLE_PERMISSIONS,
 } from './permission-catalog';
@@ -35,8 +35,9 @@ export class RbacService implements OnModuleInit {
       });
     }
 
-    // OWNER = every business (core) permission; other roles = explicit subsets.
-    const ownerCodes = CORE_PERMISSIONS.map((p) => p.code);
+    // OWNER = every business permission (core + module-contributed); other roles
+    // = explicit subsets. Module usage is separately gated by entitlement.
+    const ownerCodes = BUSINESS_PERMISSIONS.map((p) => p.code);
     await this.upsertSystemRole('OWNER', 'BUSINESS', ownerCodes);
     for (const [name, codes] of Object.entries(SYSTEM_ROLE_PERMISSIONS)) {
       await this.upsertSystemRole(name, 'BUSINESS', codes);
