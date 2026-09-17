@@ -4,7 +4,133 @@ import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 import { EntitlementService } from './modules/registry/entitlement.service';
 import { RegistryService } from './modules/registry/registry.service';
+import { CatalogService } from './modules/catalog/catalog.service';
+import { InventoryService } from './modules/inventory/inventory.service';
+import type { CreateOfferingInput } from '@dokane/contracts';
 import type { TenantContext } from './common/tenant-context';
+
+/**
+ * Seed a small demo catalog for a business (idempotent). Physical simple goods
+ * are keyed by SKU; variant products by name. Runs through CatalogService and
+ * InventoryService so variant keys are canonical and every stock change writes
+ * an INITIAL_STOCK movement. Safe to re-run — existing products are skipped.
+ */
+async function seedCatalog(
+  app: Awaited<ReturnType<typeof NestFactory.createApplicationContext>>,
+  prisma: PrismaService,
+  businessId: string,
+  userId: string,
+): Promise<void> {
+  const catalog = app.get(CatalogService);
+  const inventory = app.get(InventoryService);
+  const ctx: TenantContext = {
+    userId,
+    businessId,
+    membershipId: '',
+    roleId: '',
+    businessStatus: 'APPROVED',
+    permissions: new Set<string>(),
+  };
+
+  const slugify = (s: string): string =>
+    s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const ensureCategory = async (name: string): Promise<string> => {
+    const existing = await prisma.category.findFirst({ where: { businessId, slug: slugify(name) } });
+    if (existing) return existing.id;
+    return (await catalog.createCategory(ctx, { name, active: true })).id;
+  };
+
+  const apparel = await ensureCategory('Apparel');
+  const accessories = await ensureCategory('Accessories');
+  const digital = await ensureCategory('Digital');
+
+  // qty (and optional low-stock threshold) per offering/variant SKU.
+  type Stock = Record<string, { qty: number; threshold?: number }>;
+  const ensureOffering = async (input: CreateOfferingInput, stock: Stock = {}): Promise<void> => {
+    const existing = input.sku
+      ? await prisma.offering.findFirst({ where: { businessId, sku: input.sku } })
+      : await prisma.offering.findFirst({ where: { businessId, name: input.name } });
+    if (existing) return;
+    const created = await catalog.create(ctx, input);
+    const stockOne = async (target: { offeringId?: string; variantId?: string }, s?: { qty: number; threshold?: number }) => {
+      if (!s || s.qty <= 0) return;
+      await inventory.adjustStock(ctx, {
+        ...target,
+        delta: s.qty,
+        movementType: 'INITIAL_STOCK',
+        reason: 'Demo seed',
+        lowStockThreshold: s.threshold,
+      });
+    };
+    if (created.variants.length > 0) {
+      for (const v of created.variants) await stockOne({ variantId: v.id }, v.sku ? stock[v.sku] : undefined);
+    } else if (created.type === 'physical') {
+      await stockOne({ offeringId: created.id }, input.sku ? stock[input.sku] : undefined);
+    }
+  };
+
+  const teeVariants = (['S', 'M', 'L'] as const).flatMap((size) =>
+    ([['Black', 'BK'], ['White', 'WT']] as const).map(([color, code]) => ({
+      attributes: { Size: size, Color: color },
+      price: 7900,
+      sku: `TEE-${size}-${code}`,
+      active: true,
+    })),
+  );
+  await ensureOffering(
+    {
+      type: 'physical', name: 'Classic Cotton Tee', categoryId: apparel,
+      description: 'Soft mid-weight cotton tee. Unisex fit.',
+      price: 7900, active: true, variants: teeVariants,
+    },
+    {
+      'TEE-S-BK': { qty: 12 }, 'TEE-M-BK': { qty: 20 }, 'TEE-L-BK': { qty: 10 },
+      'TEE-S-WT': { qty: 8 }, 'TEE-M-WT': { qty: 15 }, 'TEE-L-WT': { qty: 6, threshold: 10 },
+    },
+  );
+
+  const mugVariants = ([['Cream', 'CREAM'], ['Charcoal', 'CHAR']] as const).map(([color, code]) => ({
+    attributes: { Color: color }, price: 3800, sku: `MUG-${code}`, active: true,
+  }));
+  await ensureOffering(
+    {
+      type: 'physical', name: 'Ceramic Mug', categoryId: accessories,
+      description: '330ml stoneware mug, dishwasher safe.',
+      price: 3800, active: true, variants: mugVariants,
+    },
+    { 'MUG-CREAM': { qty: 25 }, 'MUG-CHAR': { qty: 18 } },
+  );
+
+  await ensureOffering(
+    {
+      type: 'physical', name: 'Canvas Tote Bag', categoryId: accessories, sku: 'TOTE-01',
+      description: 'Heavy 12oz cotton canvas, reinforced handles.',
+      price: 4500, active: true, variants: [],
+    },
+    { 'TOTE-01': { qty: 40, threshold: 8 } },
+  );
+
+  await ensureOffering(
+    {
+      type: 'physical', name: 'Enamel Pin — Logo', categoryId: accessories, sku: 'PIN-01',
+      description: 'Hard enamel lapel pin, 25mm, rubber clutch.',
+      price: 1800, active: true, variants: [],
+    },
+    { 'PIN-01': { qty: 120 } },
+  );
+
+  await ensureOffering({
+    type: 'digital', name: 'Gift Card (₪100)', categoryId: digital, sku: 'GC-100',
+    description: 'Digital gift card, delivered by email. Never expires.',
+    price: 10000, active: true, variants: [],
+  });
+
+  await ensureOffering({
+    type: 'digital', name: 'Style Guide eBook', categoryId: digital, sku: 'EBOOK-01',
+    description: 'PDF style guide, instant download.',
+    price: 2900, active: true, variants: [],
+  });
+}
 
 /**
  * Idempotent dev seed. Boots the app context so system roles/permissions and
@@ -112,6 +238,9 @@ async function main(): Promise<void> {
   for (const id of ['catalog', 'channels', 'inventory', 'online_store', 'crm', 'accounting']) {
     await registry.enable(ctxA, id).catch(() => undefined);
   }
+
+  // Demo catalog for Business A (idempotent) so Catalog/Inventory have content.
+  await seedCatalog(app, prisma, bizA.id, ownerA.id);
 
   // eslint-disable-next-line no-console
   console.log(
