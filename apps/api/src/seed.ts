@@ -9,17 +9,164 @@ import { InventoryService } from './modules/inventory/inventory.service';
 import type { CreateOfferingInput } from '@dokane/contracts';
 import type { TenantContext } from './common/tenant-context';
 
+// qty (and optional low-stock threshold) per offering/variant SKU.
+type Stock = Record<string, { qty: number; threshold?: number }>;
+interface ProductSpec {
+  /** Category name (must be listed in the spec's `categories`). */
+  category?: string;
+  /** Initial stock by SKU. Omit for stores without the Inventory module. */
+  stock?: Stock;
+  input: Omit<CreateOfferingInput, 'categoryId'>;
+}
+interface CatalogSpec {
+  categories: string[];
+  products: ProductSpec[];
+}
+
+const sizeColorVariants = (
+  sizes: readonly string[],
+  colors: readonly (readonly [string, string])[],
+  price: number,
+  skuPrefix: string,
+) =>
+  sizes.flatMap((size) =>
+    colors.map(([color, code]) => ({
+      attributes: { Size: size, Color: color },
+      price,
+      sku: `${skuPrefix}-${size}-${code}`,
+      active: true,
+    })),
+  );
+
+/** ABC Store (retail, Growth) — physical + digital goods, with stock. */
+const ABC_CATALOG: CatalogSpec = {
+  categories: ['Apparel', 'Accessories', 'Digital'],
+  products: [
+    {
+      category: 'Apparel',
+      input: {
+        type: 'physical', name: 'Classic Cotton Tee', price: 7900, active: true,
+        description: 'Soft mid-weight cotton tee. Unisex fit.',
+        variants: sizeColorVariants(['S', 'M', 'L'], [['Black', 'BK'], ['White', 'WT']], 7900, 'TEE'),
+      },
+      stock: {
+        'TEE-S-BK': { qty: 12 }, 'TEE-M-BK': { qty: 20 }, 'TEE-L-BK': { qty: 10 },
+        'TEE-S-WT': { qty: 8 }, 'TEE-M-WT': { qty: 15 }, 'TEE-L-WT': { qty: 6, threshold: 10 },
+      },
+    },
+    {
+      category: 'Accessories',
+      input: {
+        type: 'physical', name: 'Ceramic Mug', price: 3800, active: true,
+        description: '330ml stoneware mug, dishwasher safe.',
+        variants: ([['Cream', 'CREAM'], ['Charcoal', 'CHAR']] as const).map(([color, code]) => ({
+          attributes: { Color: color }, price: 3800, sku: `MUG-${code}`, active: true,
+        })),
+      },
+      stock: { 'MUG-CREAM': { qty: 25 }, 'MUG-CHAR': { qty: 18 } },
+    },
+    {
+      category: 'Accessories',
+      input: {
+        type: 'physical', name: 'Canvas Tote Bag', sku: 'TOTE-01', price: 4500, active: true,
+        description: 'Heavy 12oz cotton canvas, reinforced handles.', variants: [],
+      },
+      stock: { 'TOTE-01': { qty: 40, threshold: 8 } },
+    },
+    {
+      category: 'Accessories',
+      input: {
+        type: 'physical', name: 'Enamel Pin — Logo', sku: 'PIN-01', price: 1800, active: true,
+        description: 'Hard enamel lapel pin, 25mm, rubber clutch.', variants: [],
+      },
+      stock: { 'PIN-01': { qty: 120 } },
+    },
+    {
+      category: 'Digital',
+      input: {
+        type: 'digital', name: 'Gift Card (₪100)', sku: 'GC-100', price: 10000, active: true,
+        description: 'Digital gift card, delivered by email. Never expires.', variants: [],
+      },
+    },
+    {
+      category: 'Digital',
+      input: {
+        type: 'digital', name: 'Style Guide eBook', sku: 'EBOOK-01', price: 2900, active: true,
+        description: 'PDF style guide, instant download.', variants: [],
+      },
+    },
+  ],
+};
+
+/** Fashion Store (fashion, Starter) — catalog only (no Inventory entitlement,
+ * so no stock is seeded). Physical apparel + digital goods. */
+const FASHION_CATALOG: CatalogSpec = {
+  categories: ['Dresses', 'Tops', 'Footwear', 'Digital'],
+  products: [
+    {
+      category: 'Dresses',
+      input: {
+        type: 'physical', name: 'Linen Wrap Dress', price: 18900, active: true,
+        description: 'Breathable European linen, adjustable wrap tie.',
+        variants: sizeColorVariants(['S', 'M', 'L'], [['Sand', 'SND'], ['Olive', 'OLV']], 18900, 'DRESS'),
+      },
+    },
+    {
+      category: 'Tops',
+      input: {
+        type: 'physical', name: 'Silk Camisole', price: 12900, active: true,
+        description: 'Bias-cut mulberry silk, adjustable straps.',
+        variants: (['S', 'M', 'L'] as const).map((size) => ({
+          attributes: { Size: size }, price: 12900, sku: `CAMI-${size}`, active: true,
+        })),
+      },
+    },
+    {
+      category: 'Footwear',
+      input: {
+        type: 'physical', name: 'Leather Ankle Boots', price: 34900, active: true,
+        description: 'Full-grain leather, stacked heel, EU sizing.',
+        variants: (['37', '38', '39', '40', '41'] as const).map((size) => ({
+          attributes: { Size: size }, price: 34900, sku: `BOOT-${size}`, active: true,
+        })),
+      },
+    },
+    {
+      category: 'Tops',
+      input: {
+        type: 'physical', name: 'Cashmere Scarf', sku: 'FS-SCARF-01', price: 15900, active: true,
+        description: 'Pure Mongolian cashmere, 180×30cm.', variants: [],
+      },
+    },
+    {
+      category: 'Digital',
+      input: {
+        type: 'digital', name: 'Lookbook SS26 (PDF)', sku: 'FS-LOOKBOOK-26', price: 1900, active: true,
+        description: 'Spring/Summer 2026 lookbook, instant download.', variants: [],
+      },
+    },
+    {
+      category: 'Digital',
+      input: {
+        type: 'digital', name: 'E-Gift Card (₪250)', sku: 'FS-GC-250', price: 25000, active: true,
+        description: 'Digital gift card, delivered by email.', variants: [],
+      },
+    },
+  ],
+};
+
 /**
- * Seed a small demo catalog for a business (idempotent). Physical simple goods
- * are keyed by SKU; variant products by name. Runs through CatalogService and
- * InventoryService so variant keys are canonical and every stock change writes
- * an INITIAL_STOCK movement. Safe to re-run — existing products are skipped.
+ * Seed a demo catalog for a business from a spec (idempotent). Runs through
+ * CatalogService/InventoryService so variant keys are canonical and every stock
+ * change writes an INITIAL_STOCK movement. Simple goods are keyed by SKU,
+ * variant products by name, categories by slug — re-running skips existing rows.
  */
 async function seedCatalog(
   app: Awaited<ReturnType<typeof NestFactory.createApplicationContext>>,
   prisma: PrismaService,
   businessId: string,
   userId: string,
+  spec: CatalogSpec,
 ): Promise<void> {
   const catalog = app.get(CatalogService);
   const inventory = app.get(InventoryService);
@@ -34,102 +181,39 @@ async function seedCatalog(
 
   const slugify = (s: string): string =>
     s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const ensureCategory = async (name: string): Promise<string> => {
+  const catId = new Map<string, string>();
+  for (const name of spec.categories) {
     const existing = await prisma.category.findFirst({ where: { businessId, slug: slugify(name) } });
-    if (existing) return existing.id;
-    return (await catalog.createCategory(ctx, { name, active: true })).id;
+    catId.set(name, existing ? existing.id : (await catalog.createCategory(ctx, { name, active: true })).id);
+  }
+
+  const stockOne = async (
+    target: { offeringId?: string; variantId?: string },
+    s?: { qty: number; threshold?: number },
+  ): Promise<void> => {
+    if (!s || s.qty <= 0) return;
+    await inventory.adjustStock(ctx, {
+      ...target, delta: s.qty, movementType: 'INITIAL_STOCK', reason: 'Demo seed', lowStockThreshold: s.threshold,
+    });
   };
 
-  const apparel = await ensureCategory('Apparel');
-  const accessories = await ensureCategory('Accessories');
-  const digital = await ensureCategory('Digital');
-
-  // qty (and optional low-stock threshold) per offering/variant SKU.
-  type Stock = Record<string, { qty: number; threshold?: number }>;
-  const ensureOffering = async (input: CreateOfferingInput, stock: Stock = {}): Promise<void> => {
+  for (const p of spec.products) {
+    const { input } = p;
     const existing = input.sku
       ? await prisma.offering.findFirst({ where: { businessId, sku: input.sku } })
       : await prisma.offering.findFirst({ where: { businessId, name: input.name } });
-    if (existing) return;
-    const created = await catalog.create(ctx, input);
-    const stockOne = async (target: { offeringId?: string; variantId?: string }, s?: { qty: number; threshold?: number }) => {
-      if (!s || s.qty <= 0) return;
-      await inventory.adjustStock(ctx, {
-        ...target,
-        delta: s.qty,
-        movementType: 'INITIAL_STOCK',
-        reason: 'Demo seed',
-        lowStockThreshold: s.threshold,
-      });
-    };
+    if (existing) continue;
+    const created = await catalog.create(ctx, {
+      ...input,
+      categoryId: p.category ? (catId.get(p.category) ?? null) : null,
+    });
+    const stock = p.stock ?? {};
     if (created.variants.length > 0) {
       for (const v of created.variants) await stockOne({ variantId: v.id }, v.sku ? stock[v.sku] : undefined);
     } else if (created.type === 'physical') {
       await stockOne({ offeringId: created.id }, input.sku ? stock[input.sku] : undefined);
     }
-  };
-
-  const teeVariants = (['S', 'M', 'L'] as const).flatMap((size) =>
-    ([['Black', 'BK'], ['White', 'WT']] as const).map(([color, code]) => ({
-      attributes: { Size: size, Color: color },
-      price: 7900,
-      sku: `TEE-${size}-${code}`,
-      active: true,
-    })),
-  );
-  await ensureOffering(
-    {
-      type: 'physical', name: 'Classic Cotton Tee', categoryId: apparel,
-      description: 'Soft mid-weight cotton tee. Unisex fit.',
-      price: 7900, active: true, variants: teeVariants,
-    },
-    {
-      'TEE-S-BK': { qty: 12 }, 'TEE-M-BK': { qty: 20 }, 'TEE-L-BK': { qty: 10 },
-      'TEE-S-WT': { qty: 8 }, 'TEE-M-WT': { qty: 15 }, 'TEE-L-WT': { qty: 6, threshold: 10 },
-    },
-  );
-
-  const mugVariants = ([['Cream', 'CREAM'], ['Charcoal', 'CHAR']] as const).map(([color, code]) => ({
-    attributes: { Color: color }, price: 3800, sku: `MUG-${code}`, active: true,
-  }));
-  await ensureOffering(
-    {
-      type: 'physical', name: 'Ceramic Mug', categoryId: accessories,
-      description: '330ml stoneware mug, dishwasher safe.',
-      price: 3800, active: true, variants: mugVariants,
-    },
-    { 'MUG-CREAM': { qty: 25 }, 'MUG-CHAR': { qty: 18 } },
-  );
-
-  await ensureOffering(
-    {
-      type: 'physical', name: 'Canvas Tote Bag', categoryId: accessories, sku: 'TOTE-01',
-      description: 'Heavy 12oz cotton canvas, reinforced handles.',
-      price: 4500, active: true, variants: [],
-    },
-    { 'TOTE-01': { qty: 40, threshold: 8 } },
-  );
-
-  await ensureOffering(
-    {
-      type: 'physical', name: 'Enamel Pin — Logo', categoryId: accessories, sku: 'PIN-01',
-      description: 'Hard enamel lapel pin, 25mm, rubber clutch.',
-      price: 1800, active: true, variants: [],
-    },
-    { 'PIN-01': { qty: 120 } },
-  );
-
-  await ensureOffering({
-    type: 'digital', name: 'Gift Card (₪100)', categoryId: digital, sku: 'GC-100',
-    description: 'Digital gift card, delivered by email. Never expires.',
-    price: 10000, active: true, variants: [],
-  });
-
-  await ensureOffering({
-    type: 'digital', name: 'Style Guide eBook', categoryId: digital, sku: 'EBOOK-01',
-    description: 'PDF style guide, instant download.',
-    price: 2900, active: true, variants: [],
-  });
+  }
 }
 
 /**
@@ -225,22 +309,22 @@ async function main(): Promise<void> {
   await entitlements.assignPlan(bizB.id, 'STARTER');
 
   // Enable a realistic set of modules for Business A (dependency-ordered) so the
-  // console nav is populated. Business B stays on Starter with nothing enabled.
+  // console nav is populated. Business B (Starter) gets just Catalog — Inventory
+  // is a Growth entitlement, so its Fashion catalog is seeded without stock.
   const registry = app.get(RegistryService);
-  const ctxA: TenantContext = {
-    userId: ownerA.id,
-    businessId: bizA.id,
-    membershipId: '',
-    roleId: '',
-    businessStatus: 'APPROVED',
-    permissions: new Set(['modules.enable']),
-  };
+  const enableCtx = (userId: string, businessId: string): TenantContext => ({
+    userId, businessId, membershipId: '', roleId: '',
+    businessStatus: 'APPROVED', permissions: new Set(['modules.enable']),
+  });
+  const ctxA = enableCtx(ownerA.id, bizA.id);
   for (const id of ['catalog', 'channels', 'inventory', 'online_store', 'crm', 'accounting']) {
     await registry.enable(ctxA, id).catch(() => undefined);
   }
+  await registry.enable(enableCtx(ownerB.id, bizB.id), 'catalog').catch(() => undefined);
 
-  // Demo catalog for Business A (idempotent) so Catalog/Inventory have content.
-  await seedCatalog(app, prisma, bizA.id, ownerA.id);
+  // Demo catalogs (idempotent) so Catalog/Inventory have content.
+  await seedCatalog(app, prisma, bizA.id, ownerA.id, ABC_CATALOG);
+  await seedCatalog(app, prisma, bizB.id, ownerB.id, FASHION_CATALOG);
 
   // eslint-disable-next-line no-console
   console.log(
