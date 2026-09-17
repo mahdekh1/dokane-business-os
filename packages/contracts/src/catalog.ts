@@ -146,5 +146,14 @@ export const CategoryDto = z.object({
   description: z.string().nullable(),
   parentId: z.string().nullable(),
   active: z.boolean(),
+  /** Number of offerings assigned to this category. */
+  offeringCount: z.number().int(),
 });
 export type CategoryDto = z.infer<typeof CategoryDto>;
+
+export const UpdateCategoryInput = z.object({
+  name: z.string().min(1).max(80).optional(),
+  description: z.string().max(500).nullable().optional(),
+  active: z.boolean().optional(),
+});
+export type UpdateCategoryInput = z.infer<typeof UpdateCategoryInput>;

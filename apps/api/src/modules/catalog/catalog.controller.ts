@@ -3,6 +3,7 @@ import {
   CreateCategoryInput,
   CreateOfferingInput,
   OfferingListQuery,
+  UpdateCategoryInput,
   UpdateOfferingInput,
 } from '@dokane/contracts';
 import type {
@@ -12,6 +13,7 @@ import type {
   OfferingDto,
   OfferingListQuery as OfferingListQueryType,
   OfferingListResult,
+  UpdateCategoryInput as UpdateCategoryInputType,
   UpdateOfferingInput as UpdateOfferingInputType,
 } from '@dokane/contracts';
 import { Ctx, RequireEntitlement, RequirePermission } from '../../common/decorators';
@@ -77,5 +79,15 @@ export class CatalogController {
     @Body(new ZodValidationPipe(CreateCategoryInput)) body: CreateCategoryInputType,
   ): Promise<CategoryDto> {
     return this.catalog.createCategory(ctx, body);
+  }
+
+  @RequirePermission('catalog.categories.manage')
+  @Patch('categories/:id')
+  updateCategory(
+    @Ctx() ctx: TenantContext,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateCategoryInput)) body: UpdateCategoryInputType,
+  ): Promise<CategoryDto> {
+    return this.catalog.updateCategory(ctx, id, body);
   }
 }

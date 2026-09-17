@@ -104,7 +104,13 @@ state), create/edit form (physical|digital, money-in-minor-units input, inline
 category create, variant-matrix editor keyed by the contracts `variantKey`
 helper so price/SKU survive attribute edits), image upload wired to the media
 endpoint; a `mediaUrl()` helper resolves public media paths against the API
-origin in dev and keeps them relative in prod. Verified live as owner.a.
+origin in dev and keeps them relative in prod. **Categories page**
+(`/catalog/categories`): list w/ product counts, add, rename, show/hide
+(slug stays stable on rename). **Inventory UI ✅**: stock by location,
+movements ledger (labels + location), low-stock view, adjust modal (posts an
+ADJUSTMENT through the single oversell-guarded `adjustStock` path), read-only
+locations in settings. Demo catalogs seeded for ABC Store (retail, stocked)
+and Fashion Store (Starter, catalog only). Verified live as owner.a/owner.b.
 **Next in Phase 3**: none — Phase 4 (Orders & Money).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.

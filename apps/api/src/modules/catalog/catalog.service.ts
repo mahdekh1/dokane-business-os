@@ -9,6 +9,7 @@ import {
   variantKey,
   type CategoryDto,
   type CreateCategoryInput,
+  type UpdateCategoryInput,
   type CreateOfferingInput,
   type OfferingDto,
   type OfferingListQuery,
@@ -208,6 +209,7 @@ export class CatalogService {
     const rows = await this.prisma.category.findMany({
       where: { businessId: ctx.businessId },
       orderBy: { name: 'asc' },
+      include: { _count: { select: { offerings: true } } },
     });
     return rows.map((c) => ({
       id: c.id,
@@ -216,7 +218,23 @@ export class CatalogService {
       description: c.description,
       parentId: c.parentId,
       active: c.active,
+      offeringCount: c._count.offerings,
     }));
+  }
+
+  async updateCategory(ctx: TenantContext, id: string, input: UpdateCategoryInput): Promise<CategoryDto> {
+    const existing = await this.prisma.category.findFirst({ where: { id, businessId: ctx.businessId } });
+    if (!existing) throw new NotFoundException({ code: 'NOT_FOUND' });
+    const data: Prisma.CategoryUpdateInput = {};
+    if (input.name !== undefined) data.name = input.name; // slug stays stable across renames
+    if (input.description !== undefined) data.description = input.description;
+    if (input.active !== undefined) data.active = input.active;
+    const c = await this.prisma.category.update({
+      where: { id },
+      data,
+      include: { _count: { select: { offerings: true } } },
+    });
+    return { id: c.id, name: c.name, slug: c.slug, description: c.description, parentId: c.parentId, active: c.active, offeringCount: c._count.offerings };
   }
 
   async createCategory(ctx: TenantContext, input: CreateCategoryInput): Promise<CategoryDto> {
@@ -233,7 +251,7 @@ export class CatalogService {
           active: input.active ?? true,
         },
       });
-      return { id: c.id, name: c.name, slug: c.slug, description: c.description, parentId: c.parentId, active: c.active };
+      return { id: c.id, name: c.name, slug: c.slug, description: c.description, parentId: c.parentId, active: c.active, offeringCount: 0 };
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
         throw new ConflictException({ code: 'SLUG_TAKEN', message: 'That category URL is taken' });

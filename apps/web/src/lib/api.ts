@@ -22,6 +22,7 @@ import type {
   PlatformBusinessDetail,
   SignupInput,
   UpdateBrandingInput,
+  UpdateCategoryInput,
   UpdateOfferingInput,
   UpdateProfileInput,
 } from '@dokane/contracts';
@@ -158,6 +159,8 @@ export const api = {
       list: () => apiFetch<CategoryDto[]>('/catalog/categories'),
       create: (input: CreateCategoryInput) =>
         apiFetch<CategoryDto>('/catalog/categories', { method: 'POST', body: input }),
+      update: (id: string, input: UpdateCategoryInput) =>
+        apiFetch<CategoryDto>(`/catalog/categories/${id}`, { method: 'PATCH', body: input }),
     },
   },
 
