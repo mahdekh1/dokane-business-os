@@ -21,6 +21,8 @@ coverage/
 .env.production
 !.env.production.example
 
-# Local media storage (local storage driver)
+# Local media storage (local storage driver, runtime uploads = cwd/storage)
+# Single-segment glob so it matches apps/api/storage but NOT the module
+# source dir apps/api/src/modules/media/storage.
 /storage/
-apps/**/storage/
+apps/*/storage/
