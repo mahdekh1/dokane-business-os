@@ -17,3 +17,4 @@ export * from './catalog';
 export * from './inventory';
 export * from './customers';
 export * from './channels';
+export * from './orders';

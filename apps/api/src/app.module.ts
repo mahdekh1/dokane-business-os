@@ -16,6 +16,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { MediaModule } from './modules/media/media.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { ChannelsModule } from './modules/channels/channels.module';
+import { OrdersModule } from './modules/orders/orders.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -40,6 +41,7 @@ import { HealthController } from './health.controller';
     MediaModule,
     CustomersModule,
     ChannelsModule,
+    OrdersModule,
   ],
   controllers: [HealthController],
   providers: [

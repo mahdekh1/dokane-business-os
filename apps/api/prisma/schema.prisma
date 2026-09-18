@@ -434,3 +434,73 @@ model SalesChannel {
   @@index([businessId])
   @@map("sales_channels")
 }
+
+model Order {
+  id                String   @id @default(uuid()) @db.Uuid
+  businessId        String   @db.Uuid
+  channelId         String   @db.Uuid
+  locationId        String?  @db.Uuid
+  customerId        String?  @db.Uuid
+  entryMode         String // ONLINE | MANUAL
+  fulfillmentStatus String // Axis A
+  paymentStatus     String   @default("UNPAID") // Axis B (derived)
+  subtotal          Int
+  discount          Int      @default(0)
+  taxAmount         Int      @default(0)
+  total             Int
+  amountPaid        Int      @default(0)
+  currency          String
+  note              String?
+  stockCommitted    Boolean  @default(false)
+  idempotencyKey    String?
+  createdBy         String?  @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@unique([businessId, idempotencyKey])
+  @@index([businessId, fulfillmentStatus])
+  @@index([businessId, channelId])
+  @@index([businessId, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String   @id @default(uuid()) @db.Uuid
+  businessId   String   @db.Uuid
+  orderId      String   @db.Uuid
+  offeringId   String?  @db.Uuid
+  variantId    String?  @db.Uuid
+  nameSnapshot String
+  skuSnapshot  String?
+  unitPrice    Int
+  quantity     Int
+  discount     Int      @default(0)
+  lineTotal    Int
+  createdAt    DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  orderId    String   @db.Uuid
+  method     String // CASH | BIT
+  amount     Int
+  currency   String
+  reference  String?
+  status     String   @default("RECEIVED") // RECEIVED | REFUNDED
+  receivedAt DateTime @default(now())
+  createdBy  String?  @db.Uuid
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, orderId])
+  @@map("payments")
+}
