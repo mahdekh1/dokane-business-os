@@ -504,3 +504,25 @@ model Payment {
   @@index([businessId, orderId])
   @@map("payments")
 }
+
+model FinancialEntry {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  type       String // INCOME | EXPENSE
+  amount     Int
+  currency   String
+  category   String?
+  channelId  String?  @db.Uuid
+  method     String? // for income: CASH | BIT
+  sourceType String? // ORDER_PAYMENT | MANUAL
+  sourceId   String?  @db.Uuid // payment id when auto-generated
+  note       String?
+  entryDate  DateTime @default(now())
+  createdBy  String?  @db.Uuid
+  createdAt  DateTime @default(now())
+
+  @@unique([businessId, sourceId])
+  @@index([businessId, type, entryDate])
+  @@index([businessId, channelId])
+  @@map("financial_entries")
+}
