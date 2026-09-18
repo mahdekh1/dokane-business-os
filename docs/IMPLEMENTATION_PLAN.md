@@ -1046,7 +1046,7 @@ the server; no client-side status jumps not offered by the API.
 receivables + income tiles.
 **Sync:** `ui/04-orders-money` → review → merge. **Phase-4 gate:** run the
 orders/payments/accounting E2E.
-- [ ] Orders + money flows work end-to-end
+- [x] Orders + money flows work end-to-end ✅ (2026-09-18: orders list (channel/fulfillment/payment filters), manual order builder (server totals), order detail with allowed transitions + partial-payment dialog, accounting (3 reconciled tiles + income/expense + receivables + record-expense), dashboard money tiles global/per-channel. Verified live: Sales − Income = Receivables, income auto-posts via outbox.)
 
 ---
 

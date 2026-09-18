@@ -111,7 +111,7 @@ movements ledger (labels + location), low-stock view, adjust modal (posts an
 ADJUSTMENT through the single oversell-guarded `adjustStock` path), read-only
 locations in settings. Demo catalogs seeded for ABC Store (retail, stocked)
 and Fashion Store (Starter, catalog only). Verified live as owner.a/owner.b.
-**Phase 4 ⏳ (backend done, 4.1–4.6)**: **Channels** (core, auto-provisioned;
+**Phase 4 ✅**: **Channels** (core, auto-provisioned;
 ONLINE_STORE needs a fulfillment location). **Orders** — one model, two axes
 (fulfillment caller-driven + payment derived), server-computed totals + item
 snapshots, channel-aware transitions, Idempotency-Key. **Payments** — many per
@@ -122,6 +122,10 @@ ledger; core subscriber writes idempotent INCOME on payment; summary =
 sales/income/expenses/receivables/net, global or per-channel. **Invoices** —
 scaffolded, dormant (NOT_ENABLED). Money plumbing is core (any plan can sell);
 Channels/Accounting *modules* only gate their management surfaces. API suite
-106/106. **Next in Phase 4**: Orders/Money UI (4.7), then Phase 5.
+106/106. **Orders/Money UI ✅ (4.7)**: orders list + manual builder (server
+totals) + detail (two-axis, transitions, partial-payment dialog); accounting
+(3 reconciled tiles + income/expense + receivables + record-expense); dashboard
+money tiles (global/per-channel). New core **Orders** nav group. **Next**:
+Phase 5 (CRM & Project Management).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.
