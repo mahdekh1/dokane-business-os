@@ -417,3 +417,20 @@ model Customer {
   @@index([businessId, phone])
   @@map("customers")
 }
+
+model SalesChannel {
+  id                    String   @id @default(uuid()) @db.Uuid
+  businessId            String   @db.Uuid
+  type                  String // ONLINE_STORE | PHYSICAL | MARKETPLACE
+  name                  String
+  locationId            String?  @db.Uuid
+  fulfillmentLocationId String?  @db.Uuid
+  settings              Json     @default("{}")
+  isDefault             Boolean  @default(false)
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([businessId])
+  @@map("sales_channels")
+}

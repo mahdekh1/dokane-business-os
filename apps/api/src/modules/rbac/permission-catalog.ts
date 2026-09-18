@@ -41,6 +41,13 @@ export const MODULE_PERMISSIONS: PermissionDef[] = [
   { code: 'catalog.categories.manage', moduleId: 'catalog', description: 'Manage product categories' },
   { code: 'inventory.view', moduleId: 'inventory', description: 'View stock and movements' },
   { code: 'inventory.manage', moduleId: 'inventory', description: 'Adjust stock and thresholds' },
+  { code: 'channels.view', moduleId: 'channels', description: 'View sales channels' },
+  { code: 'channels.manage', moduleId: 'channels', description: 'Create and edit sales channels' },
+  { code: 'orders.view', moduleId: 'orders', description: 'View orders' },
+  { code: 'orders.manage', moduleId: 'orders', description: 'Create orders and change fulfillment' },
+  { code: 'orders.payment.record', moduleId: 'orders', description: 'Record payments on orders' },
+  { code: 'accounting.entries.view', moduleId: 'accounting', description: 'View income, expenses and receivables' },
+  { code: 'accounting.entries.manage', moduleId: 'accounting', description: 'Record income and expense entries' },
 ];
 
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [
