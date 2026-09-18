@@ -6,7 +6,11 @@ import { EntitlementService } from './modules/registry/entitlement.service';
 import { RegistryService } from './modules/registry/registry.service';
 import { CatalogService } from './modules/catalog/catalog.service';
 import { InventoryService } from './modules/inventory/inventory.service';
-import type { CreateOfferingInput } from '@dokane/contracts';
+import { ChannelsService } from './modules/channels/channels.service';
+import { OrdersService } from './modules/orders/orders.service';
+import { PaymentsService } from './modules/orders/payments.service';
+import { OutboxRelay } from './common/events/outbox-relay.service';
+import type { CreateOfferingInput, CreateOrderInput } from '@dokane/contracts';
 import type { TenantContext } from './common/tenant-context';
 
 // qty (and optional low-stock threshold) per offering/variant SKU.
@@ -216,6 +220,87 @@ async function seedCatalog(
   }
 }
 
+interface DemoOrder {
+  key: string;
+  channel: 'PHYSICAL' | 'ONLINE';
+  status?: 'DRAFT' | 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'COMPLETED';
+  customer?: { name?: string; email?: string };
+  items: { sku: string; qty: number }[];
+  /** A payment to record after creation (minor units). */
+  pay?: { amount: number; method: 'CASH' | 'BIT' };
+}
+
+/** Demo orders for ABC Store: a paid counter sale, a partly-paid one, an open
+ *  online order, a digital sale, and a deposit on a confirmed order. Spread
+ *  across fulfillment + payment states so Orders/Accounting/dashboard show
+ *  realistic numbers (income posts via the outbox). */
+const ABC_ORDERS: DemoOrder[] = [
+  { key: 'abc-1', channel: 'PHYSICAL', status: 'COMPLETED', customer: { name: 'Café Luna' },
+    items: [{ sku: 'TEE-M-BK', qty: 1 }, { sku: 'MUG-CREAM', qty: 1 }], pay: { amount: 11700, method: 'CASH' } },
+  { key: 'abc-2', channel: 'PHYSICAL', status: 'COMPLETED', customer: { name: 'Rana Haddad' },
+    items: [{ sku: 'TOTE-01', qty: 1 }, { sku: 'PIN-01', qty: 2 }], pay: { amount: 5000, method: 'CASH' } },
+  { key: 'abc-3', channel: 'ONLINE', customer: { name: 'Omar Khoury', email: 'omar@example.com' },
+    items: [{ sku: 'MUG-CHAR', qty: 1 }] },
+  { key: 'abc-4', channel: 'PHYSICAL', status: 'COMPLETED', customer: { name: 'Walk-in customer' },
+    items: [{ sku: 'GC-100', qty: 1 }], pay: { amount: 10000, method: 'BIT' } },
+  { key: 'abc-5', channel: 'PHYSICAL', status: 'CONFIRMED', customer: { name: 'Studio Nazareth' },
+    items: [{ sku: 'TEE-L-BK', qty: 2 }], pay: { amount: 5000, method: 'CASH' } },
+];
+
+/** Seed demo orders (idempotent by an Idempotency-Key per order). Goes through
+ *  OrdersService/PaymentsService so stock, movements and income are all real. */
+async function seedOrders(
+  app: Awaited<ReturnType<typeof NestFactory.createApplicationContext>>,
+  prisma: PrismaService,
+  businessId: string,
+  userId: string,
+): Promise<void> {
+  const channels = app.get(ChannelsService);
+  const orders = app.get(OrdersService);
+  const payments = app.get(PaymentsService);
+  const relay = app.get(OutboxRelay);
+  const ctx: TenantContext = {
+    userId, businessId, membershipId: '', roleId: '',
+    businessStatus: 'APPROVED', permissions: new Set<string>(),
+  };
+
+  await channels.ensureDefaults(businessId);
+  const chans = await prisma.salesChannel.findMany({ where: { businessId } });
+  const physical = chans.find((c) => c.type === 'PHYSICAL');
+  const online = chans.find((c) => c.type === 'ONLINE_STORE');
+
+  const resolveItem = async (sku: string): Promise<{ offeringId?: string; variantId?: string } | null> => {
+    const v = await prisma.offeringVariant.findFirst({ where: { businessId, sku }, select: { id: true } });
+    if (v) return { variantId: v.id };
+    const o = await prisma.offering.findFirst({ where: { businessId, sku }, select: { id: true } });
+    return o ? { offeringId: o.id } : null;
+  };
+
+  for (const spec of ABC_ORDERS) {
+    const idem = `seed:${spec.key}`;
+    if (await prisma.order.findFirst({ where: { businessId, idempotencyKey: idem }, select: { id: true } })) continue;
+    const channel = spec.channel === 'ONLINE' ? online : physical;
+    if (!channel) continue;
+    const items: CreateOrderInput['items'] = [];
+    for (const it of spec.items) {
+      const ref = await resolveItem(it.sku);
+      if (ref) items.push({ ...ref, quantity: it.qty, discount: 0 });
+    }
+    if (items.length === 0) continue;
+    const order = await orders.create(ctx, {
+      channelId: channel.id,
+      items,
+      discount: 0,
+      customer: spec.customer,
+      fulfillmentStatus: spec.channel === 'ONLINE' ? undefined : spec.status,
+    }, idem);
+    if (spec.pay) await payments.record(ctx, order.id, { amount: spec.pay.amount, method: spec.pay.method });
+  }
+
+  // Flush the outbox so payment.received → INCOME entries exist right after seeding.
+  await relay.processPending();
+}
+
 /**
  * Idempotent dev seed. Boots the app context so system roles/permissions and
  * plans/entitlements are seeded by their onModuleInit hooks, then creates a
@@ -326,6 +411,9 @@ async function main(): Promise<void> {
   // Demo catalogs (idempotent) so Catalog/Inventory have content.
   await seedCatalog(app, prisma, bizA.id, ownerA.id, ABC_CATALOG);
   await seedCatalog(app, prisma, bizB.id, ownerB.id, FASHION_CATALOG);
+
+  // Demo orders for ABC Store (idempotent) so Orders/Accounting/dashboard populate.
+  await seedOrders(app, prisma, bizA.id, ownerA.id);
 
   // eslint-disable-next-line no-console
   console.log(
