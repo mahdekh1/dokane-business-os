@@ -9,6 +9,7 @@ import type {
   MovementListQuery,
   MovementListResult,
 } from '@dokane/contracts';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { TenantContext } from '../../common/tenant-context';
 
@@ -17,6 +18,24 @@ interface Stockable {
   variantId: string | null;
   stockableKey: string;
   label: string;
+}
+
+/** Low-level, transaction-scoped stock change. */
+export interface StockDelta {
+  businessId: string;
+  locationId: string;
+  offeringId: string | null;
+  variantId: string | null;
+  stockableKey: string;
+  delta: number;
+  movementType: string;
+  reason?: string | null;
+  referenceType?: string | null;
+  referenceId?: string | null;
+  createdBy?: string | null;
+  /** When true, (re)sets the low-stock threshold to `lowStockThreshold`. */
+  setThreshold?: boolean;
+  lowStockThreshold?: number | null;
 }
 
 @Injectable()
@@ -94,72 +113,94 @@ export class InventoryService {
    */
   async adjustStock(ctx: TenantContext, input: AdjustStockInput): Promise<InventoryItemDto> {
     const location = await this.resolveLocation(ctx, input.locationId);
-    const locationId = location.id;
     const stockable = await this.resolveStockable(ctx, input);
-    const where = {
-      businessId_locationId_stockableKey: {
+    const item = await this.prisma.$transaction((tx) =>
+      this.applyDeltaTx(tx, {
         businessId: ctx.businessId,
-        locationId,
+        locationId: location.id,
+        offeringId: stockable.offeringId,
+        variantId: stockable.variantId,
         stockableKey: stockable.stockableKey,
-      },
-    };
-
-    const item = await this.prisma.$transaction(async (tx) => {
-      // Ensure the row exists (and set the threshold if provided).
-      const row = await tx.inventoryItem.upsert({
-        where,
-        create: {
-          businessId: ctx.businessId,
-          locationId,
-          offeringId: stockable.offeringId,
-          variantId: stockable.variantId,
-          stockableKey: stockable.stockableKey,
-          quantity: 0,
-          lowStockThreshold: input.lowStockThreshold ?? null,
-        },
-        update: input.lowStockThreshold !== undefined ? { lowStockThreshold: input.lowStockThreshold } : {},
-      });
-
-      if (input.delta < 0) {
-        // Only decrement if there is enough stock — atomic, oversell-proof.
-        const res = await tx.inventoryItem.updateMany({
-          where: { id: row.id, quantity: { gte: -input.delta } },
-          data: { quantity: { increment: input.delta } },
-        });
-        if (res.count === 0) {
-          throw new ConflictException({ code: 'INSUFFICIENT_STOCK', message: 'Not enough stock for this change' });
-        }
-      } else if (input.delta > 0) {
-        await tx.inventoryItem.update({ where: { id: row.id }, data: { quantity: { increment: input.delta } } });
-      }
-
-      await tx.inventoryMovement.create({
-        data: {
-          businessId: ctx.businessId,
-          locationId,
-          offeringId: stockable.offeringId,
-          variantId: stockable.variantId,
-          movementType: input.movementType,
-          quantityDelta: input.delta,
-          reason: input.reason ?? null,
-          createdBy: ctx.userId,
-        },
-      });
-
-      return tx.inventoryItem.findUniqueOrThrow({ where: { id: row.id } });
-    });
-
+        delta: input.delta,
+        movementType: input.movementType,
+        reason: input.reason ?? null,
+        createdBy: ctx.userId,
+        setThreshold: input.lowStockThreshold !== undefined,
+        lowStockThreshold: input.lowStockThreshold ?? null,
+      }),
+    );
     return {
       id: item.id,
-      locationId: item.locationId,
+      locationId: location.id,
       locationName: location.name,
-      offeringId: item.offeringId,
-      variantId: item.variantId,
+      offeringId: stockable.offeringId,
+      variantId: stockable.variantId,
       label: stockable.label,
       quantity: item.quantity,
       lowStockThreshold: item.lowStockThreshold,
       lowStock: item.lowStockThreshold !== null && item.quantity <= item.lowStockThreshold,
     };
+  }
+
+  /**
+   * The single stock-mutating primitive, scoped to a caller's transaction so
+   * order fulfillment (SALE/RETURN) and manual adjustments share one oversell-
+   * proof path and always write a movement. A negative delta uses a conditional
+   * update so it can never drive quantity below zero, even under concurrency.
+   */
+  async applyDeltaTx(
+    tx: Prisma.TransactionClient,
+    p: StockDelta,
+  ): Promise<{ id: string; quantity: number; lowStockThreshold: number | null }> {
+    const row = await tx.inventoryItem.upsert({
+      where: {
+        businessId_locationId_stockableKey: {
+          businessId: p.businessId,
+          locationId: p.locationId,
+          stockableKey: p.stockableKey,
+        },
+      },
+      create: {
+        businessId: p.businessId,
+        locationId: p.locationId,
+        offeringId: p.offeringId,
+        variantId: p.variantId,
+        stockableKey: p.stockableKey,
+        quantity: 0,
+        lowStockThreshold: p.lowStockThreshold ?? null,
+      },
+      update: p.setThreshold ? { lowStockThreshold: p.lowStockThreshold ?? null } : {},
+    });
+
+    if (p.delta < 0) {
+      const res = await tx.inventoryItem.updateMany({
+        where: { id: row.id, quantity: { gte: -p.delta } },
+        data: { quantity: { increment: p.delta } },
+      });
+      if (res.count === 0) {
+        throw new ConflictException({ code: 'INSUFFICIENT_STOCK', message: 'Not enough stock for this change' });
+      }
+    } else if (p.delta > 0) {
+      await tx.inventoryItem.update({ where: { id: row.id }, data: { quantity: { increment: p.delta } } });
+    }
+
+    await tx.inventoryMovement.create({
+      data: {
+        businessId: p.businessId,
+        locationId: p.locationId,
+        offeringId: p.offeringId,
+        variantId: p.variantId,
+        movementType: p.movementType,
+        quantityDelta: p.delta,
+        reason: p.reason ?? null,
+        referenceType: p.referenceType ?? null,
+        referenceId: p.referenceId ?? null,
+        createdBy: p.createdBy ?? null,
+      },
+    });
+
+    const fresh = await tx.inventoryItem.findUniqueOrThrow({ where: { id: row.id } });
+    return { id: fresh.id, quantity: fresh.quantity, lowStockThreshold: fresh.lowStockThreshold };
   }
 
   async list(ctx: TenantContext, query: InventoryListQuery): Promise<InventoryListResult> {

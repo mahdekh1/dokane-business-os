@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   allowedFulfillmentTransitions,
+  consumesStock,
   derivePaymentStatus,
   type CreateOrderInput,
   type EntryMode,
@@ -17,6 +18,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type { TenantContext } from '../../common/tenant-context';
 import { ChannelsService } from '../channels/channels.service';
 import { CustomersService } from '../customers/customers.service';
+import { InventoryService } from '../inventory/inventory.service';
 
 interface ResolvedLine {
   offeringId: string | null;
@@ -35,6 +37,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly channels: ChannelsService,
     private readonly customers: CustomersService,
+    private readonly inventory: InventoryService,
   ) {}
 
   async create(ctx: TenantContext, input: CreateOrderInput, idempotencyKey?: string): Promise<OrderDto> {
@@ -60,6 +63,7 @@ export class OrdersService {
     const total = Math.max(0, subtotal - orderDiscount);
     const business = await this.prisma.business.findUniqueOrThrow({ where: { id: ctx.businessId }, select: { currency: true } });
 
+    const commitOnCreate = consumesStock(fulfillmentStatus);
     try {
       const order = await this.prisma.$transaction(async (tx) => {
         const o = await tx.order.create({
@@ -78,6 +82,7 @@ export class OrdersService {
             amountPaid: 0,
             currency: business.currency,
             note: input.note ?? null,
+            stockCommitted: commitOnCreate,
             idempotencyKey: idempotencyKey ?? null,
             createdBy: ctx.userId,
             items: {
@@ -94,8 +99,9 @@ export class OrdersService {
               })),
             },
           },
-          select: { id: true },
+          include: { items: true },
         });
+        if (commitOnCreate) await this.commitStock(tx, o, o.items, 'SALE');
         return o;
       });
       return this.get(ctx, order.id);
@@ -116,8 +122,67 @@ export class OrdersService {
     if (!allowed.includes(target)) {
       throw new BadRequestException({ code: 'ILLEGAL_TRANSITION', message: `Cannot move from ${order.fulfillmentStatus} to ${target}.` });
     }
-    await this.prisma.order.update({ where: { id }, data: { fulfillmentStatus: target } });
+
+    const commitNow = consumesStock(target) && !order.stockCommitted;
+    const releaseNow = target === 'CANCELLED' && order.stockCommitted;
+    await this.prisma.$transaction(async (tx) => {
+      if (commitNow || releaseNow) {
+        const items = await tx.orderItem.findMany({ where: { orderId: id } });
+        await this.commitStock(tx, order, items, commitNow ? 'SALE' : 'RETURN');
+      }
+      await tx.order.update({
+        where: { id },
+        data: {
+          fulfillmentStatus: target,
+          ...(commitNow ? { stockCommitted: true } : {}),
+          ...(releaseNow ? { stockCommitted: false } : {}),
+        },
+      });
+    });
     return this.get(ctx, id);
+  }
+
+  /**
+   * Apply an order's stock effect within the caller's transaction: SALE
+   * decrements (aborting with INSUFFICIENT_STOCK if short), RETURN restocks.
+   * Only items whose offering tracks inventory are touched (digital goods are
+   * skipped). Every change writes a movement referencing the order.
+   */
+  private async commitStock(
+    tx: Prisma.TransactionClient,
+    order: { id: string; businessId: string; locationId: string | null; createdBy: string | null },
+    items: { offeringId: string | null; variantId: string | null; quantity: number }[],
+    direction: 'SALE' | 'RETURN',
+  ): Promise<void> {
+    const locationId = order.locationId ?? (await this.inventory.ensureDefaultLocation(order.businessId));
+    const offeringIds = [...new Set(items.filter((i) => i.offeringId).map((i) => i.offeringId as string))];
+    const variantIds = [...new Set(items.filter((i) => i.variantId).map((i) => i.variantId as string))];
+    const offerings = offeringIds.length
+      ? await tx.offering.findMany({ where: { businessId: order.businessId, id: { in: offeringIds } }, select: { id: true, trackInventory: true } })
+      : [];
+    const variants = variantIds.length
+      ? await tx.offeringVariant.findMany({ where: { businessId: order.businessId, id: { in: variantIds } }, include: { offering: { select: { trackInventory: true } } } })
+      : [];
+    const offTrack = new Map(offerings.map((o) => [o.id, o.trackInventory]));
+    const varTrack = new Map(variants.map((v) => [v.id, v.offering.trackInventory]));
+
+    for (const it of items) {
+      const tracks = it.offeringId ? offTrack.get(it.offeringId) : it.variantId ? varTrack.get(it.variantId) : false;
+      if (!tracks) continue;
+      const stockableKey = it.variantId ? `variant:${it.variantId}` : `offering:${it.offeringId}`;
+      await this.inventory.applyDeltaTx(tx, {
+        businessId: order.businessId,
+        locationId,
+        offeringId: it.offeringId,
+        variantId: it.variantId,
+        stockableKey,
+        delta: direction === 'SALE' ? -it.quantity : it.quantity,
+        movementType: direction,
+        referenceType: 'order',
+        referenceId: order.id,
+        createdBy: order.createdBy,
+      });
+    }
   }
 
   async list(ctx: TenantContext, query: OrderListQuery): Promise<OrderListResult> {
