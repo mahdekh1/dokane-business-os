@@ -37,6 +37,15 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', href: '/dashboard' },
   {
+    id: 'orders',
+    label: 'Orders',
+    icon: 'orders',
+    children: [
+      { label: 'All orders', href: '/orders' },
+      { label: 'New order', href: '/orders/new' },
+    ],
+  },
+  {
     id: 'storefront',
     label: 'Storefront',
     icon: 'store',
@@ -120,12 +129,8 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'accounting',
     label: 'Accounting',
     icon: 'accounting',
+    href: '/accounting',
     requires: ['accounting'],
-    children: [
-      { label: 'Income', href: '/accounting/income' },
-      { label: 'Expenses', href: '/accounting/expenses' },
-      { label: 'Receivables', href: '/accounting/receivables' },
-    ],
   },
   {
     id: 'notifications',

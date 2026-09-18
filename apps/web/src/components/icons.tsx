@@ -16,6 +16,11 @@ const base = (props: P) => ({
 });
 
 export const Icon = {
+  orders: (p: P) => (
+    <svg {...base(p)}>
+      <path d="M6 3h12l1 4H5l1-4zM5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6" />
+    </svg>
+  ),
   dashboard: (p: P) => (
     <svg {...base(p)}>
       <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />

@@ -6,15 +6,25 @@ import type {
   BusinessDto,
   CategoryDto,
   ChangePasswordInput,
+  AccountingSummaryDto,
   AdjustStockInput,
+  ChannelDto,
   CreateBusinessInput,
   CreateCategoryInput,
+  CreateFinancialEntryInput,
   CreateOfferingInput,
+  CreateOrderInput,
+  FinancialEntryDto,
+  FinancialEntryListResult,
+  FulfillmentStatus,
   InventoryItemDto,
   InventoryListResult,
   LocationDto,
   LoginInput,
   MovementListResult,
+  OrderDto,
+  OrderListResult,
+  ReceivablesResult,
   MeResponse,
   OfferingDto,
   OfferingListResult,
@@ -180,6 +190,44 @@ export const api = {
     locations: () => apiFetch<LocationDto[]>('/inventory/locations'),
     adjust: (input: AdjustStockInput) =>
       apiFetch<InventoryItemDto>('/inventory/adjustments', { method: 'POST', body: input }),
+  },
+
+  channels: {
+    list: () => apiFetch<ChannelDto[]>('/channels'),
+  },
+
+  orders: {
+    list: (q: Record<string, string | number | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<OrderListResult>(`/orders${s ? `?${s}` : ''}`);
+    },
+    get: (id: string) => apiFetch<OrderDto>(`/orders/${id}`),
+    create: (input: CreateOrderInput) => apiFetch<OrderDto>('/orders', { method: 'POST', body: input }),
+    transition: (id: string, fulfillmentStatus: FulfillmentStatus) =>
+      apiFetch<OrderDto>(`/orders/${id}/transitions`, { method: 'POST', body: { fulfillmentStatus } }),
+    recordPayment: (id: string, input: { amount: number; method: string; reference?: string }) =>
+      apiFetch<OrderDto>(`/orders/${id}/payments`, { method: 'POST', body: input }),
+  },
+
+  accounting: {
+    summary: (q: Record<string, string | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<AccountingSummaryDto>(`/accounting/summary${s ? `?${s}` : ''}`);
+    },
+    entries: (q: Record<string, string | number | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<FinancialEntryListResult>(`/accounting/entries${s ? `?${s}` : ''}`);
+    },
+    createEntry: (input: CreateFinancialEntryInput) =>
+      apiFetch<FinancialEntryDto>('/accounting/entries', { method: 'POST', body: input }),
+    receivables: (channelId?: string) =>
+      apiFetch<ReceivablesResult>(`/accounting/receivables${channelId ? `?channelId=${channelId}` : ''}`),
   },
 
   createBusiness: (input: CreateBusinessInput) =>
