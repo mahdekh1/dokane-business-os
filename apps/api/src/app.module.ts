@@ -18,6 +18,7 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { ChannelsModule } from './modules/channels/channels.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -44,6 +45,7 @@ import { HealthController } from './health.controller';
     ChannelsModule,
     OrdersModule,
     AccountingModule,
+    InvoicesModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -47,6 +47,9 @@ describe('Payments (Task 4.3, integration)', () => {
       .send({ type: 'physical', name: 'Widget', price: 500 })
       .expect(201);
     offeringId = off.body.id;
+    await as(request(server()).post('/api/v1/inventory/adjustments'))
+      .send({ offeringId, delta: 1000, movementType: 'INITIAL_STOCK' })
+      .expect(201);
     const channels = await as(request(server()).get('/api/v1/channels')).expect(200);
     physicalChannelId = channels.body.find((c: { type: string }) => c.type === 'PHYSICAL').id;
   });
@@ -56,6 +59,8 @@ describe('Payments (Task 4.3, integration)', () => {
     await prisma.payment.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.orderItem.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.order.deleteMany({ where: { businessId: { in: ids } } });
+    await prisma.inventoryMovement.deleteMany({ where: { businessId: { in: ids } } });
+    await prisma.inventoryItem.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.salesChannel.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.location.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.offering.deleteMany({ where: { businessId: { in: ids } } });

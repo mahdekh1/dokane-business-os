@@ -526,3 +526,31 @@ model FinancialEntry {
   @@index([businessId, channelId])
   @@map("financial_entries")
 }
+
+// Dormant invoicing infrastructure (Task 4.6). Entities + per-tenant numbering
+// exist and orders carry the wiring, but issuance is gated off (NOT_ENABLED).
+model Invoice {
+  id         String    @id @default(uuid()) @db.Uuid
+  businessId String    @db.Uuid
+  orderId    String    @db.Uuid
+  number     String
+  status     String    @default("DRAFT")
+  currency   String
+  lines      Json      @default("[]")
+  totals     Json      @default("{}")
+  issuedAt   DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([businessId, number])
+  @@index([businessId, orderId])
+  @@map("invoices")
+}
+
+model InvoiceSequence {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @unique @db.Uuid
+  nextNumber Int      @default(1)
+  updatedAt  DateTime @updatedAt
+
+  @@map("invoice_sequences")
+}

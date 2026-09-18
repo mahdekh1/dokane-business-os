@@ -50,6 +50,10 @@ describe('Orders (Task 4.2, integration)', () => {
       .send({ type: 'physical', name: 'Widget', price: 1000, sku: 'W-1' })
       .expect(201);
     offeringId = off.body.id;
+    // Stock so completed orders (which consume stock, Task 4.4) can commit.
+    await as(request(server()).post('/api/v1/inventory/adjustments'))
+      .send({ offeringId, delta: 1000, movementType: 'INITIAL_STOCK' })
+      .expect(201);
 
     const channels = await as(request(server()).get('/api/v1/channels')).expect(200);
     onlineChannelId = channels.body.find((c: { type: string }) => c.type === 'ONLINE_STORE').id;
@@ -61,6 +65,8 @@ describe('Orders (Task 4.2, integration)', () => {
     await prisma.payment.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.orderItem.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.order.deleteMany({ where: { businessId: { in: ids } } });
+    await prisma.inventoryMovement.deleteMany({ where: { businessId: { in: ids } } });
+    await prisma.inventoryItem.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.salesChannel.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.location.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.offering.deleteMany({ where: { businessId: { in: ids } } });
