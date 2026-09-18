@@ -3,11 +3,12 @@ import { ChannelsModule } from '../channels/channels.module';
 import { CustomersModule } from '../customers/customers.module';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
+import { PaymentsService } from './payments.service';
 
 @Module({
   imports: [ChannelsModule, CustomersModule],
   controllers: [OrdersController],
-  providers: [OrdersService],
-  exports: [OrdersService],
+  providers: [OrdersService, PaymentsService],
+  exports: [OrdersService, PaymentsService],
 })
 export class OrdersModule {}
