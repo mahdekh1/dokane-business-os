@@ -884,7 +884,7 @@ physical channel per location; `channels.*` permissions.
 > fulfillment location is rejected.
 **Verify:** `pnpm --filter api test channels`
 **Sync:** `be/04-channels` → PR → merge.
-- [ ] Channels created + owned per tenant
+- [x] Channels created + owned per tenant ✅ (2026-09-18: SalesChannel + ensureDefaults auto-provision; ONLINE_STORE needs a fulfillment location; core (permission-gated, not entitlement-gated). 6 tests.)
 
 ### Task 4.2 — Orders: schema + two-axis status + creation
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/orders/*`, schema
@@ -916,7 +916,7 @@ it('ignores client-supplied totals and computes server-side', async () => {
 pnpm --filter api test orders
 ```
 **Sync:** `be/04-orders` → PR → merge.
-- [ ] Orders: server totals, snapshots, transitions, idempotency
+- [x] Orders: server totals, snapshots, transitions, idempotency ✅ (2026-09-18: two-axis status, server-computed totals, item snapshots, channel-aware allowedTransitions, Idempotency-Key. 5 tests.)
 
 ### Task 4.3 — Payments (partial) + payment-status derivation
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/orders/payments.*`,
@@ -945,7 +945,7 @@ it('derives PARTIALLY_PAID then PAID across two payments', async () => {
 pnpm --filter api test payments
 ```
 **Sync:** `be/04-payments` → PR → merge.
-- [ ] Partial payments + status derivation correct
+- [x] Partial payments + status derivation correct ✅ (2026-09-18: many payments per order, amount_paid = Σ RECEIVED, derived UNPAID/PARTIALLY_PAID/PAID, payment.received via outbox, overpay/cancelled guarded. 4 tests.)
 
 ### Task 4.4 — Inventory decrement on fulfillment (transactional)
 **Owner:** Claude Code · **Files:** orders service ↔ inventory service.
@@ -974,7 +974,7 @@ it('prevents overselling the last unit under concurrency', async () => {
 pnpm --filter api test orders-inventory
 ```
 **Sync:** `be/04-order-stock` → PR → merge.
-- [ ] No oversell; movements consistent
+- [x] No oversell; movements consistent ✅ (2026-09-18: applyDeltaTx shared path; SALE on first stock-consuming transition (exactly-once via stock_committed), RETURN on cancel; concurrent last-unit sale — one wins, one INSUFFICIENT_STOCK. 4 tests.)
 
 ### Task 4.5 — Basic Accounting (income on payment, expenses manual, receivables)
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/accounting/*`, schema
@@ -1008,7 +1008,7 @@ it('records income only when paid, not when completed', async () => {
 pnpm --filter api test accounting
 ```
 **Sync:** `be/04-accounting` → PR → merge.
-- [ ] Cash-basis income + receivables reconcile
+- [x] Cash-basis income + receivables reconcile ✅ (2026-09-18: FinancialEntry ledger; core subscriber on payment.received writes idempotent INCOME; summary gives sales/income/expenses/receivables/net global or per-channel. 3 tests.)
 
 ### Task 4.6 — Invoice infra (dormant)
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/invoices/*` (scaffold),
@@ -1023,7 +1023,7 @@ interface + order wiring, all **gated off / no-op**.
 > logic. Test the endpoint is inert.
 **Verify:** `pnpm --filter api test invoices` (endpoint returns NOT_ENABLED)
 **Sync:** `be/04-invoices-stub` → PR → merge.
-- [ ] Invoice infra present but dormant
+- [x] Invoice infra present but dormant ✅ (2026-09-18: Invoice + InvoiceSequence + generateInvoice interface + number reservation; POST /invoices/:orderId returns NOT_ENABLED, issues nothing. 1 test.)
 
 ### Task 4.7 — Orders/Money UI
 **Owner:** Claude Code (UI) · **Files:** `apps/web/app/(app)/orders/*`,
