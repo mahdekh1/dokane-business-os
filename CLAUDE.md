@@ -135,6 +135,12 @@ convert (→ core `getOrCreateByContact`), an `order.placed` subscriber that
 auto-registers ONLINE customers (dedupe delegated to core — CRM never owns
 customers). UI: order **customer picker**, **Customers** registry (list +
 detail w/ order history + outstanding), **Leads pipeline** (kanban + convert).
-API suite 115/115. **Next**: Phase 5.2 (Project Management), 5.4 (Calendar).
+**Phase 5.2 + 5.3 ✅**: **Project Management** — Project + Task with two status
+machines (allowed-transition maps; illegal→400), priority, membership-validated
+assignee/owner, `pm.task.assigned/completed` events, per-project task counts;
+entitlement `project_management` (Business tier). UI: Projects list + task board
+(kanban by status, transitions, assignee pickers) backed by a new core
+`GET /team/members` roster. Business-tier demo **Meridian Studio** (owner.d +
+staff.d) seeds projects/tasks. API suite 121/121. **Next**: Phase 5.4 (Calendar).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.

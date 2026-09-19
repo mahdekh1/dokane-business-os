@@ -1100,7 +1100,7 @@ status; projects list + a kanban task board.
 > via the CRM/PM contracts. RTL-ready.
 **Verify (Claude):** typecheck + web tests.
 **Sync:** `ui/05-crm-pm` → review → merge.
-- [ ] CRM + PM UIs work (CRM UI ✅ done 2026-09-19: Customers list/detail + Leads pipeline; PM UI still pending)
+- [x] CRM + PM UIs work ✅ (2026-09-19: CRM — Customers list/detail w/ order history + Leads pipeline (kanban + convert); PM — Projects list + task board (kanban by status, transitions, assignee pickers via a new /team/members roster). Business-tier demo (Meridian Studio) seeds projects/tasks.)
 
 ### Task 5.4 — Calendar module (appointments + Google/Apple sync)
 **Owner:** Claude Code (API + UI) · **Files:** `apps/api/src/modules/calendar/*`,
