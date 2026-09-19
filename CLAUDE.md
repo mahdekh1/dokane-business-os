@@ -141,6 +141,13 @@ assignee/owner, `pm.task.assigned/completed` events, per-project task counts;
 entitlement `project_management` (Business tier). UI: Projects list + task board
 (kanban by status, transitions, assignee pickers) backed by a new core
 `GET /team/members` roster. Business-tier demo **Meridian Studio** (owner.d +
-staff.d) seeds projects/tasks. API suite 121/121. **Next**: Phase 5.4 (Calendar).
+staff.d) seeds projects/tasks. **Phase 5.4 ⏳**: **Calendar** — Appointment model
++ API (date/status/assignee/customer filters, range check, membership-validated
+assignee) + **Schedule agenda UI** with create/edit dialog; emits
+`calendar.appointment.changed`. External **Google/Apple sync is scaffolded but
+dormant** — CalendarConnection + AES-256-GCM token util; connect returns
+NOT_CONFIGURED until provider creds (GOOGLE_CLIENT_ID/SECRET, CALDAV_ENABLED)
+are set; a sync worker is still to build. API suite 126/126. **Phase 5 done bar
+live calendar sync.** Next: Phase 6 (public mini-site).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.

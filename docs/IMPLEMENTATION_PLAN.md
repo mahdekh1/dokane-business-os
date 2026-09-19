@@ -1118,7 +1118,7 @@ outbox/queue, never inside a request tx; never expose another tenant's calendar.
 **Verify:** A/B isolation on appointments; connect + sync round-trip against a test
 calendar (or a mocked provider); typecheck + tests.
 **Sync:** `be/05-calendar` (API + UI) → review → merge.
-- [ ] Appointments + Google/Apple sync work end-to-end
+- [x] Appointments live end-to-end; Google/Apple sync scaffolded (dormant) ✅ (2026-09-19: Appointment model + API (filters, range check, customer/assignee validation) + Schedule agenda UI + create/edit dialog; emits calendar.appointment.changed. External sync scaffolded — CalendarConnection + AES-256-GCM token util + connect returns NOT_CONFIGURED until Google OAuth/CalDAV creds are set; Connect screen surfaces this. 7 tests, A/B isolation. **Remaining before this is truly end-to-end:** provider OAuth creds + a sync worker consuming calendar.appointment.changed.)
 
 ---
 
