@@ -15,6 +15,7 @@ import {
 } from '@dokane/contracts';
 import type { Order, OrderItem, Payment, Prisma, SalesChannel } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventBus } from '../../common/events/event-bus.service';
 import type { TenantContext } from '../../common/tenant-context';
 import { ChannelsService } from '../channels/channels.service';
 import { CustomersService } from '../customers/customers.service';
@@ -38,6 +39,7 @@ export class OrdersService {
     private readonly channels: ChannelsService,
     private readonly customers: CustomersService,
     private readonly inventory: InventoryService,
+    private readonly events: EventBus,
   ) {}
 
   async create(ctx: TenantContext, input: CreateOrderInput, idempotencyKey?: string): Promise<OrderDto> {
@@ -56,7 +58,7 @@ export class OrdersService {
     const fulfillmentStatus: FulfillmentStatus =
       entryMode === 'ONLINE' ? 'PENDING' : (input.fulfillmentStatus ?? 'CONFIRMED');
 
-    const customerId = await this.resolveCustomer(ctx, input, entryMode);
+    const customer = await this.resolveCustomer(ctx, input, entryMode);
     const lines = await this.resolveLines(ctx, input.items);
     const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
     const orderDiscount = Math.min(input.discount ?? 0, subtotal);
@@ -71,7 +73,8 @@ export class OrdersService {
             businessId: ctx.businessId,
             channelId: channel.id,
             locationId: locationId ?? null,
-            customerId,
+            customerId: customer.customerId,
+            customerName: customer.customerName,
             entryMode,
             fulfillmentStatus,
             paymentStatus: 'UNPAID',
@@ -102,6 +105,18 @@ export class OrdersService {
           include: { items: true },
         });
         if (commitOnCreate) await this.commitStock(tx, o, o.items, 'SALE');
+        // CRM (and later modules) react to this via the outbox. Carries the
+        // contact so CRM can upsert/link a customer for online orders.
+        await this.events.emit(tx, 'order.placed', {
+          orderId: o.id,
+          businessId: ctx.businessId,
+          channelId: channel.id,
+          entryMode,
+          customerId: customer.customerId,
+          name: customer.customerName ?? input.customer?.name ?? null,
+          email: input.customer?.email ?? null,
+          phone: input.customer?.phone ?? null,
+        });
         return o;
       });
       return this.get(ctx, order.id);
@@ -189,6 +204,7 @@ export class OrdersService {
     const where: Prisma.OrderWhereInput = {
       businessId: ctx.businessId,
       ...(query.channelId ? { channelId: query.channelId } : {}),
+      ...(query.customerId ? { customerId: query.customerId } : {}),
       ...(query.fulfillmentStatus ? { fulfillmentStatus: query.fulfillmentStatus } : {}),
       ...(query.paymentStatus ? { paymentStatus: query.paymentStatus } : {}),
       ...(query.entryMode ? { entryMode: query.entryMode } : {}),
@@ -204,12 +220,11 @@ export class OrdersService {
       this.prisma.order.count({ where }),
     ]);
     const channelName = await this.channelNames(ctx.businessId);
-    const customerName = await this.customerNames(ctx.businessId, rows.map((r) => r.customerId));
     const items: OrderSummaryDto[] = rows.map((o) => ({
       id: o.id,
       channelName: channelName.get(o.channelId)?.name ?? '',
       channelType: channelName.get(o.channelId)?.type ?? '',
-      customerName: o.customerId ? customerName.get(o.customerId) ?? null : null,
+      customerName: o.customerName,
       entryMode: o.entryMode as EntryMode,
       fulfillmentStatus: o.fulfillmentStatus as FulfillmentStatus,
       paymentStatus: o.paymentStatus as OrderSummaryDto['paymentStatus'],
@@ -229,10 +244,7 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException({ code: 'ORDER_NOT_FOUND' });
     const channel = await this.prisma.salesChannel.findUnique({ where: { id: order.channelId } });
-    const customer = order.customerId
-      ? await this.prisma.customer.findUnique({ where: { id: order.customerId }, select: { name: true } })
-      : null;
-    return this.toDto(order, order.items, order.payments, channel, customer?.name ?? null);
+    return this.toDto(order, order.items, order.payments, channel);
   }
 
   // ---- helpers ----
@@ -242,7 +254,6 @@ export class OrdersService {
     items: OrderItem[],
     payments: Payment[],
     channel: SalesChannel | null,
-    customerName: string | null,
   ): OrderDto {
     return {
       id: o.id,
@@ -251,7 +262,7 @@ export class OrdersService {
       channelType: channel?.type ?? '',
       locationId: o.locationId,
       customerId: o.customerId,
-      customerName,
+      customerName: o.customerName,
       entryMode: o.entryMode as EntryMode,
       fulfillmentStatus: o.fulfillmentStatus as FulfillmentStatus,
       paymentStatus: o.paymentStatus as OrderDto['paymentStatus'],
@@ -297,22 +308,31 @@ export class OrdersService {
     };
   }
 
-  private async resolveCustomer(ctx: TenantContext, input: CreateOrderInput, entryMode: EntryMode): Promise<string | null> {
+  /** Resolve the order's customer into an optional link + a display snapshot
+   *  (see OrderCustomerInput): existing id, create+link, or ephemeral name. */
+  private async resolveCustomer(
+    ctx: TenantContext,
+    input: CreateOrderInput,
+    entryMode: EntryMode,
+  ): Promise<{ customerId: string | null; customerName: string | null }> {
     const c = input.customer;
-    if (!c) return null;
+    if (!c) return { customerId: null, customerName: null };
     if (c.customerId) {
-      const found = await this.prisma.customer.findFirst({ where: { id: c.customerId, businessId: ctx.businessId }, select: { id: true } });
+      const found = await this.prisma.customer.findFirst({ where: { id: c.customerId, businessId: ctx.businessId }, select: { id: true, name: true } });
       if (!found) throw new BadRequestException({ code: 'CUSTOMER_NOT_FOUND' });
-      return found.id;
+      return { customerId: found.id, customerName: found.name };
     }
-    if (c.email || c.phone || c.name) {
-      const created = await this.customers.getOrCreateByContact(ctx, {
-        email: c.email, phone: c.phone, name: c.name,
-        source: entryMode === 'ONLINE' ? 'ONLINE' : 'MANUAL',
-      });
-      return created.id;
+    const name = c.name?.trim() || null;
+    if (!c.email && !c.phone && !name) return { customerId: null, customerName: null };
+    if (c.save === false) {
+      // Ephemeral — snapshot the label only, no customer record.
+      return { customerId: null, customerName: name };
     }
-    return null;
+    const created = await this.customers.getOrCreateByContact(ctx, {
+      email: c.email, phone: c.phone, name: c.name,
+      source: entryMode === 'ONLINE' ? 'ONLINE' : 'MANUAL',
+    });
+    return { customerId: created.id, customerName: created.name };
   }
 
   private async resolveLines(ctx: TenantContext, items: CreateOrderInput['items']): Promise<ResolvedLine[]> {
@@ -355,13 +375,6 @@ export class OrdersService {
   private async channelNames(businessId: string): Promise<Map<string, { name: string; type: string }>> {
     const rows = await this.prisma.salesChannel.findMany({ where: { businessId }, select: { id: true, name: true, type: true } });
     return new Map(rows.map((c) => [c.id, { name: c.name, type: c.type }]));
-  }
-
-  private async customerNames(businessId: string, ids: (string | null)[]): Promise<Map<string, string>> {
-    const uniq = [...new Set(ids.filter((x): x is string => !!x))];
-    if (uniq.length === 0) return new Map();
-    const rows = await this.prisma.customer.findMany({ where: { businessId, id: { in: uniq } }, select: { id: true, name: true } });
-    return new Map(rows.map((c) => [c.id, c.name]));
   }
 
   private isUniqueViolation(err: unknown): boolean {

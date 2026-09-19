@@ -83,11 +83,20 @@ export const CreateOrderItemInput = z
   });
 export type CreateOrderItemInput = z.infer<typeof CreateOrderItemInput>;
 
+/**
+ * Customer on an order, three ways:
+ *  - `customerId`            → link an existing customer (its name is snapshotted).
+ *  - name/email/phone        → create + link (deduped by email/phone) when `save`
+ *                              is not false; the resolved name is snapshotted.
+ *  - `name` with `save:false`→ ephemeral — snapshot the name only, no record
+ *                              (a walk-in label; avoids duplicate throwaway rows).
+ */
 export const OrderCustomerInput = z.object({
   customerId: z.string().uuid().optional(),
   email: z.string().email().optional(),
   phone: z.string().max(40).optional(),
   name: z.string().max(160).optional(),
+  save: z.boolean().optional(),
 });
 export type OrderCustomerInput = z.infer<typeof OrderCustomerInput>;
 
@@ -187,6 +196,7 @@ export type OrderSummaryDto = z.infer<typeof OrderSummaryDto>;
 
 export const OrderListQuery = z.object({
   channelId: z.string().optional(),
+  customerId: z.string().optional(),
   fulfillmentStatus: FulfillmentStatusEnum.optional(),
   paymentStatus: PaymentStatusEnum.optional(),
   entryMode: EntryModeEnum.optional(),
