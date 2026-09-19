@@ -48,6 +48,8 @@ export const MODULE_PERMISSIONS: PermissionDef[] = [
   { code: 'orders.payment.record', moduleId: 'orders', description: 'Record payments on orders' },
   { code: 'accounting.entries.view', moduleId: 'accounting', description: 'View income, expenses and receivables' },
   { code: 'accounting.entries.manage', moduleId: 'accounting', description: 'Record income and expense entries' },
+  { code: 'crm.leads.view', moduleId: 'crm', description: 'View leads and pipeline' },
+  { code: 'crm.leads.manage', moduleId: 'crm', description: 'Create, edit and convert leads' },
 ];
 
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [

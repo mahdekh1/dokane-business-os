@@ -32,6 +32,8 @@ export const FinancialEntryDto = z.object({
   category: z.string().nullable(),
   channelId: z.string().nullable(),
   channelName: z.string().nullable(),
+  orderId: z.string().nullable(),
+  customerId: z.string().nullable(),
   method: z.string().nullable(),
   sourceType: z.string().nullable(),
   note: z.string().nullable(),

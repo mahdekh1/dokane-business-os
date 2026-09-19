@@ -19,6 +19,7 @@ interface PaymentReceived {
   orderId: string;
   businessId: string;
   channelId: string;
+  customerId: string | null;
   amount: number;
   currency: string;
   method: string;
@@ -54,6 +55,8 @@ export class AccountingService implements OnModuleInit {
           currency: p.currency,
           category: 'sales',
           channelId: p.channelId,
+          orderId: p.orderId,
+          customerId: p.customerId ?? null,
           method: p.method,
           sourceType: 'ORDER_PAYMENT',
           sourceId: p.paymentId,
@@ -184,6 +187,8 @@ export class AccountingService implements OnModuleInit {
       category: e.category,
       channelId: e.channelId,
       channelName: e.channelId ? channelNames.get(e.channelId) ?? null : null,
+      orderId: e.orderId,
+      customerId: e.customerId,
       method: e.method,
       sourceType: e.sourceType,
       note: e.note,

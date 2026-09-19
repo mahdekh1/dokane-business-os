@@ -515,6 +515,8 @@ model FinancialEntry {
   currency   String
   category   String?
   channelId  String?  @db.Uuid
+  orderId    String?  @db.Uuid // the order this income came from (for revenue-by-order)
+  customerId String?  @db.Uuid // the order's customer (for revenue-by-customer)
   method     String? // for income: CASH | BIT
   sourceType String? // ORDER_PAYMENT | MANUAL
   sourceId   String?  @db.Uuid // payment id when auto-generated
@@ -526,6 +528,7 @@ model FinancialEntry {
   @@unique([businessId, sourceId])
   @@index([businessId, type, entryDate])
   @@index([businessId, channelId])
+  @@index([businessId, customerId])
   @@map("financial_entries")
 }
 
@@ -555,4 +558,25 @@ model InvoiceSequence {
   updatedAt  DateTime @updatedAt
 
   @@map("invoice_sequences")
+}
+
+// CRM leads — pipeline over the core customers registry (Task 5.1). CRM owns
+// this table; customers stay in the core module (linked via customerId).
+model Lead {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  customerId String?  @db.Uuid // set on conversion (links to the core customer)
+  name       String
+  email      String?
+  phone      String?
+  source     String?
+  value      Int? // estimated deal value, minor units
+  note       String?
+  stage      String   @default("NEW") // NEW | CONTACTED | QUALIFIED | CONVERTED | LOST
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId, stage])
+  @@index([businessId, customerId])
+  @@map("leads")
 }

@@ -59,6 +59,7 @@ export class PaymentsService {
         orderId,
         businessId: ctx.businessId,
         channelId: order.channelId,
+        customerId: order.customerId,
         amount: input.amount,
         currency: order.currency,
         method: input.method,

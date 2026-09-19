@@ -75,6 +75,7 @@ describe('Accounting (Task 4.5, integration)', () => {
     await prisma.salesChannel.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.location.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.offering.deleteMany({ where: { businessId: { in: ids } } });
+    await prisma.customer.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.subscription.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.businessMembership.deleteMany({ where: { businessId: { in: ids } } });
     await prisma.business.deleteMany({ where: { id: { in: ids } } });
@@ -111,6 +112,20 @@ describe('Accounting (Task 4.5, integration)', () => {
     const amounts = mine.map((e: { amount: number }) => e.amount);
     expect(amounts).toContain(200);
     expect(amounts).toContain(300);
+  });
+
+  it('income entries carry their order and customer', async () => {
+    const cust = await as(request(server()).post('/api/v1/customers')).send({ name: 'Linked Co', email: 'linked@acme.test' }).expect(201);
+    await as(request(server()).post('/api/v1/inventory/adjustments')).send({ offeringId, delta: 5, movementType: 'ADJUSTMENT' }).expect(201);
+    const order = (await as(request(server()).post('/api/v1/orders'))
+      .send({ channelId: physicalChannelId, items: [{ offeringId, quantity: 1 }], fulfillmentStatus: 'COMPLETED', customer: { customerId: cust.body.id } })
+      .expect(201)).body;
+    await pay(order.id, order.total).expect(201);
+    await flush();
+    const entries = await as(request(server()).get('/api/v1/accounting/entries?type=INCOME')).expect(200);
+    const entry = entries.body.items.find((e: { orderId: string }) => e.orderId === order.id);
+    expect(entry).toBeTruthy();
+    expect(entry.customerId).toBe(cust.body.id);
   });
 
   it('a manual expense lowers net and lists in the ledger', async () => {
