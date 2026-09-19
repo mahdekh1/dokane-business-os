@@ -158,11 +158,8 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'projects',
     label: 'Projects',
     icon: 'projects',
+    href: '/projects',
     requires: ['project_management'],
-    children: [
-      { label: 'Projects', href: '/projects' },
-      { label: 'Tasks', href: '/projects/tasks' },
-    ],
   },
   {
     id: 'ai',

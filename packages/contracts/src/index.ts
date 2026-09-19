@@ -21,3 +21,4 @@ export * from './orders';
 export * from './accounting';
 export * from './crm';
 export * from './pm';
+export * from './team';

@@ -312,10 +312,58 @@ async function seedOrders(
   await relay.processPending();
 }
 
+interface DemoTask {
+  title: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'BLOCKED' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  assignee?: string; // membership id
+  dueInDays?: number;
+}
+
+/** Demo projects + tasks (prisma-direct so we can seed final statuses; idempotent
+ *  by project name). Tasks are assigned to real memberships. */
+async function seedProjects(
+  prisma: PrismaService,
+  businessId: string,
+  ownerMembershipId: string,
+  staffMembershipId: string,
+): Promise<void> {
+  const projects: { name: string; description: string; status: string; tasks: DemoTask[] }[] = [
+    {
+      name: 'Website Revamp', description: 'New marketing site + CMS migration.', status: 'ACTIVE',
+      tasks: [
+        { title: 'Wireframes & sitemap', status: 'DONE', priority: 'MEDIUM', assignee: ownerMembershipId },
+        { title: 'Homepage visual design', status: 'IN_PROGRESS', priority: 'HIGH', assignee: staffMembershipId, dueInDays: 3 },
+        { title: 'CMS integration', status: 'TODO', priority: 'MEDIUM', assignee: staffMembershipId },
+        { title: 'Content migration', status: 'BLOCKED', priority: 'LOW' },
+        { title: 'SEO & analytics audit', status: 'IN_REVIEW', priority: 'HIGH', assignee: ownerMembershipId },
+      ],
+    },
+    {
+      name: 'Q3 Brand Campaign', description: 'Summer launch across social + email.', status: 'PLANNING',
+      tasks: [
+        { title: 'Campaign brief', status: 'TODO', priority: 'URGENT', assignee: ownerMembershipId, dueInDays: 5 },
+        { title: 'Budget approval', status: 'TODO', priority: 'HIGH' },
+      ],
+    },
+  ];
+  for (const p of projects) {
+    if (await prisma.project.findFirst({ where: { businessId, name: p.name }, select: { id: true } })) continue;
+    const proj = await prisma.project.create({ data: { businessId, name: p.name, description: p.description, status: p.status, ownerId: ownerMembershipId } });
+    await prisma.task.createMany({
+      data: p.tasks.map((t) => ({
+        businessId, projectId: proj.id, title: t.title, status: t.status, priority: t.priority,
+        assigneeId: t.assignee ?? null,
+        dueDate: t.dueInDays ? new Date(Date.now() + t.dueInDays * 86_400_000) : null,
+      })),
+    });
+  }
+}
+
 /**
  * Idempotent dev seed. Boots the app context so system roles/permissions and
  * plans/entitlements are seeded by their onModuleInit hooks, then creates a
- * platform admin and two demo businesses (A/B) with members and subscriptions.
+ * platform admin and demo businesses with members and subscriptions.
  * Run with: `pnpm --filter @dokane/api seed` (compiles first).
  */
 async function upsertUser(
@@ -346,6 +394,8 @@ async function main(): Promise<void> {
   const staffA = await upsertUser(prisma, 'staff.a@dokane.test', 'Staff', 'A');
   const ownerB = await upsertUser(prisma, 'owner.b@dokane.test', 'Owner', 'B');
   const ownerC = await upsertUser(prisma, 'owner.c@dokane.test', 'Owner', 'C');
+  const ownerD = await upsertUser(prisma, 'owner.d@dokane.test', 'Lena', 'Rizk');
+  const staffD = await upsertUser(prisma, 'staff.d@dokane.test', 'Sami', 'Odeh');
 
   // `businessType` holds the category key (see @dokane/contracts BUSINESS_CATEGORIES).
   const abcData = { businessType: 'retail', offeringTypes: ['physical'], email: 'hello@abc-store.test', currency: 'ILS' };
@@ -383,6 +433,15 @@ async function main(): Promise<void> {
   await prisma.subscription.deleteMany({ where: { businessId: bizC.id } });
   await prisma.moduleState.deleteMany({ where: { businessId: bizC.id } });
 
+  // A Business-tier agency (has Project Management + a team) to showcase PM.
+  const studioData = { businessType: 'services', offeringTypes: ['services'], email: 'hello@meridian-studio.test', currency: 'ILS' };
+  const bizD = await prisma.business.upsert({
+    where: { slug: 'meridian-studio' },
+    create: { name: 'Meridian Studio', slug: 'meridian-studio', status: 'APPROVED', ...studioData },
+    update: { status: 'APPROVED', ...studioData },
+    select: { id: true },
+  });
+
   const owner = await prisma.role.findFirstOrThrow({
     where: { name: 'OWNER', businessId: null, isSystem: true },
   });
@@ -401,9 +460,12 @@ async function main(): Promise<void> {
   await link(bizA.id, staffA.id, staff.id);
   await link(bizB.id, ownerB.id, owner.id);
   await link(bizC.id, ownerC.id, owner.id);
+  const mOwnerD = await link(bizD.id, ownerD.id, owner.id);
+  const mStaffD = await link(bizD.id, staffD.id, staff.id);
 
   await entitlements.assignPlan(bizA.id, 'GROWTH');
   await entitlements.assignPlan(bizB.id, 'STARTER');
+  await entitlements.assignPlan(bizD.id, 'BUSINESS');
 
   // Enable a realistic set of modules for Business A (dependency-ordered) so the
   // console nav is populated. Business B (Starter) gets just Catalog — Inventory
@@ -418,6 +480,10 @@ async function main(): Promise<void> {
     await registry.enable(ctxA, id).catch(() => undefined);
   }
   await registry.enable(enableCtx(ownerB.id, bizB.id), 'catalog').catch(() => undefined);
+  const ctxD = enableCtx(ownerD.id, bizD.id);
+  for (const id of ['project_management', 'calendar', 'crm', 'accounting', 'notifications']) {
+    await registry.enable(ctxD, id).catch(() => undefined);
+  }
 
   // Demo catalogs (idempotent) so Catalog/Inventory have content.
   await seedCatalog(app, prisma, bizA.id, ownerA.id, ABC_CATALOG);
@@ -425,6 +491,9 @@ async function main(): Promise<void> {
 
   // Demo orders for ABC Store (idempotent) so Orders/Accounting/dashboard populate.
   await seedOrders(app, prisma, bizA.id, ownerA.id);
+
+  // Demo projects + tasks for Meridian Studio (idempotent) so PM populates.
+  await seedProjects(prisma, bizD.id, mOwnerD.id, mStaffD.id);
 
   // eslint-disable-next-line no-console
   console.log(
@@ -437,6 +506,8 @@ async function main(): Promise<void> {
       '                   owner.b@dokane.test (OWNER)',
       `  Business C     : nour-pharmacy [PENDING_APPROVAL] ${bizC.id}`,
       '                   owner.c@dokane.test (OWNER)',
+      `  Business D     : meridian-studio [BUSINESS, approved] ${bizD.id}`,
+      '                   owner.d@dokane.test (OWNER), staff.d@dokane.test (STAFF) — has Projects',
     ].join('\n'),
   );
 

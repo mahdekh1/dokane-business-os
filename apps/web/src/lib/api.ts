@@ -28,11 +28,20 @@ import type {
   LocationDto,
   LoginInput,
   MovementListResult,
+  CreateProjectInput,
+  CreateTaskInput,
   OrderDto,
   OrderListResult,
+  ProjectDto,
+  ProjectListResult,
   ReceivablesResult,
+  TaskDto,
+  TaskListResult,
+  TeamMemberDto,
   UpdateCustomerInput,
   UpdateLeadInput,
+  UpdateProjectInput,
+  UpdateTaskInput,
   MeResponse,
   OfferingDto,
   OfferingListResult,
@@ -261,6 +270,34 @@ export const api = {
       create: (input: CreateLeadInput) => apiFetch<LeadDto>('/crm/leads', { method: 'POST', body: input }),
       update: (id: string, input: UpdateLeadInput) => apiFetch<LeadDto>(`/crm/leads/${id}`, { method: 'PATCH', body: input }),
       convert: (id: string) => apiFetch<LeadDto>(`/crm/leads/${id}/convert`, { method: 'POST' }),
+    },
+  },
+
+  team: {
+    members: () => apiFetch<TeamMemberDto[]>('/team/members'),
+  },
+
+  pm: {
+    projects: {
+      list: (q: Record<string, string | number | undefined> = {}) => {
+        const qs = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+        const s = qs.toString();
+        return apiFetch<ProjectListResult>(`/pm/projects${s ? `?${s}` : ''}`);
+      },
+      get: (id: string) => apiFetch<ProjectDto>(`/pm/projects/${id}`),
+      create: (input: CreateProjectInput) => apiFetch<ProjectDto>('/pm/projects', { method: 'POST', body: input }),
+      update: (id: string, input: UpdateProjectInput) => apiFetch<ProjectDto>(`/pm/projects/${id}`, { method: 'PATCH', body: input }),
+    },
+    tasks: {
+      list: (q: Record<string, string | number | undefined> = {}) => {
+        const qs = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+        const s = qs.toString();
+        return apiFetch<TaskListResult>(`/pm/tasks${s ? `?${s}` : ''}`);
+      },
+      create: (input: CreateTaskInput) => apiFetch<TaskDto>('/pm/tasks', { method: 'POST', body: input }),
+      update: (id: string, input: UpdateTaskInput) => apiFetch<TaskDto>(`/pm/tasks/${id}`, { method: 'PATCH', body: input }),
     },
   },
 
