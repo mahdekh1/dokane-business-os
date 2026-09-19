@@ -119,4 +119,10 @@ describe('Order fulfillment ↔ inventory (Task 4.4, integration)', () => {
     await sell(d, 1).expect(201);
     expect(await stockOf(d)).toBe(-1); // no inventory row created
   });
+
+  it('sells a physical item with tracking off, even at zero stock', async () => {
+    const o = await makeOffering({ trackInventory: false });
+    await sell(o, 3).expect(201); // no INSUFFICIENT_STOCK despite no stock
+    expect(await stockOf(o)).toBe(-1); // still no inventory row
+  });
 });

@@ -32,6 +32,7 @@ export function OfferingForm({ id }: { id?: string }) {
 
   const [name, setName] = useState('');
   const [type, setType] = useState<OfferingKind>('physical');
+  const [trackInventory, setTrackInventory] = useState(true);
   const [categoryId, setCategoryId] = useState('');
   const [price, setPrice] = useState('');
   const [sku, setSku] = useState('');
@@ -51,6 +52,7 @@ export function OfferingForm({ id }: { id?: string }) {
     void api.catalog.get(id).then((o) => {
       setName(o.name);
       setType(o.type);
+      setTrackInventory(o.trackInventory);
       setCategoryId(o.categoryId ?? '');
       setPrice(toMajor(o.price));
       setSku(o.sku ?? '');
@@ -111,6 +113,7 @@ export function OfferingForm({ id }: { id?: string }) {
         sku: !hasVariants && sku ? sku : undefined,
         barcode: !hasVariants && barcode ? barcode : undefined,
         price: toMinor(price),
+        trackInventory: type === 'physical' ? trackInventory : false,
         active: true,
         variants,
       };
@@ -156,7 +159,7 @@ export function OfferingForm({ id }: { id?: string }) {
             <label className={labelCls}>Type</label>
             <div className="inline-flex rounded-[11px] bg-field p-[3px]">
               {(['physical', 'digital'] as const).map((t) => (
-                <button key={t} type="button" onClick={() => setType(t)}
+                <button key={t} type="button" onClick={() => { setType(t); setTrackInventory(t === 'physical'); }}
                   className="rounded-[9px] px-4 py-2 text-[13.5px] font-semibold capitalize"
                   style={type === t ? { background: 'var(--brand)', color: 'var(--on-brand)' } : { color: 'var(--muted)' }}>
                   {t === 'physical' ? 'Physical' : 'Digital'}
@@ -191,6 +194,18 @@ export function OfferingForm({ id }: { id?: string }) {
             </div>
           )}
         </div>
+
+        {type === 'physical' && (
+          <div className="mb-4">
+            <button type="button" onClick={() => setTrackInventory((v) => !v)} className="flex items-center gap-2.5">
+              <span className="relative h-[23px] w-[40px] flex-none rounded-full transition-colors" style={{ background: trackInventory ? 'var(--brand)' : 'var(--field)' }}>
+                <span className="absolute top-[2.5px] h-[18px] w-[18px] rounded-full transition-all" style={{ left: trackInventory ? '19px' : '2.5px', background: trackInventory ? '#fff' : '#8b978f' }} />
+              </span>
+              <b className="text-[14px]">Track stock</b>
+              <span className="text-[12.5px] font-normal text-muted">— {trackInventory ? 'sales reduce inventory and can’t oversell' : 'sell freely; no stock is counted'}</span>
+            </button>
+          </div>
+        )}
 
         <div className="mb-4">
           <label className={labelCls}>Description</label>
