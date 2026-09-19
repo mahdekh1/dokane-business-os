@@ -20,6 +20,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { CrmModule } from './modules/crm/crm.module';
+import { PmModule } from './modules/pm/pm.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PlatformGuard } from './common/guards/platform.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -48,6 +49,7 @@ import { HealthController } from './health.controller';
     AccountingModule,
     InvoicesModule,
     CrmModule,
+    PmModule,
   ],
   controllers: [HealthController],
   providers: [

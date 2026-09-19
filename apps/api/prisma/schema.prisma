@@ -580,3 +580,40 @@ model Lead {
   @@index([businessId, customerId])
   @@map("leads")
 }
+
+// Project Management (Task 5.2). owner_id / assignee_id → business_memberships.id.
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  name        String
+  description String?
+  status      String   @default("PLANNING") // PLANNING|ACTIVE|ON_HOLD|COMPLETED|CANCELLED|ARCHIVED
+  ownerId     String?  @db.Uuid // business membership id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks Task[]
+
+  @@index([businessId, status])
+  @@map("projects")
+}
+
+model Task {
+  id          String    @id @default(uuid()) @db.Uuid
+  businessId  String    @db.Uuid
+  projectId   String    @db.Uuid
+  title       String
+  description String?
+  status      String    @default("TODO") // TODO|IN_PROGRESS|IN_REVIEW|DONE|BLOCKED|CANCELLED
+  priority    String    @default("MEDIUM") // LOW|MEDIUM|HIGH|URGENT
+  assigneeId  String?   @db.Uuid // business membership id
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, projectId, status])
+  @@index([businessId, assigneeId])
+  @@map("tasks")
+}

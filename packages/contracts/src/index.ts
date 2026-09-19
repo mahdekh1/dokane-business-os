@@ -20,3 +20,4 @@ export * from './channels';
 export * from './orders';
 export * from './accounting';
 export * from './crm';
+export * from './pm';

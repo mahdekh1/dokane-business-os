@@ -50,6 +50,13 @@ export const MODULE_PERMISSIONS: PermissionDef[] = [
   { code: 'accounting.entries.manage', moduleId: 'accounting', description: 'Record income and expense entries' },
   { code: 'crm.leads.view', moduleId: 'crm', description: 'View leads and pipeline' },
   { code: 'crm.leads.manage', moduleId: 'crm', description: 'Create, edit and convert leads' },
+  { code: 'pm.projects.view', moduleId: 'project_management', description: 'View projects' },
+  { code: 'pm.projects.create', moduleId: 'project_management', description: 'Create projects' },
+  { code: 'pm.projects.update', moduleId: 'project_management', description: 'Edit projects' },
+  { code: 'pm.tasks.view', moduleId: 'project_management', description: 'View tasks' },
+  { code: 'pm.tasks.create', moduleId: 'project_management', description: 'Create tasks' },
+  { code: 'pm.tasks.update', moduleId: 'project_management', description: 'Edit and move tasks' },
+  { code: 'pm.tasks.assign', moduleId: 'project_management', description: 'Assign tasks to team members' },
 ];
 
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [

@@ -1086,7 +1086,7 @@ contracts, subscriber on `order.placed`.
 > assignee outside the business rejected.
 **Verify:** `pnpm --filter api test pm`
 **Sync:** `be/05-pm` → PR → merge.
-- [ ] PM statuses + assignment tested
+- [x] PM statuses + assignment tested ✅ (2026-09-19: Project + Task models; two status machines with allowed-transition maps (illegal moves 400); priority; assignee/owner validated as business memberships; pm.task.assigned/completed emitted via outbox; per-project open/total task counts. Entitlement project_management (Business tier). 6 tests.)
 
 ### Task 5.3 — CRM + PM UI
 **Owner:** Claude Code (UI) · **Files:** `apps/web/app/(app)/customers/*`,
