@@ -22,3 +22,4 @@ export * from './accounting';
 export * from './crm';
 export * from './pm';
 export * from './team';
+export * from './calendar';

@@ -28,6 +28,10 @@ import type {
   LocationDto,
   LoginInput,
   MovementListResult,
+  AppointmentDto,
+  AppointmentListResult,
+  CalendarConnectionDto,
+  CreateAppointmentInput,
   CreateProjectInput,
   CreateTaskInput,
   OrderDto,
@@ -38,6 +42,7 @@ import type {
   TaskDto,
   TaskListResult,
   TeamMemberDto,
+  UpdateAppointmentInput,
   UpdateCustomerInput,
   UpdateLeadInput,
   UpdateProjectInput,
@@ -275,6 +280,22 @@ export const api = {
 
   team: {
     members: () => apiFetch<TeamMemberDto[]>('/team/members'),
+  },
+
+  calendar: {
+    appointments: {
+      list: (q: Record<string, string | number | undefined> = {}) => {
+        const qs = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+        const s = qs.toString();
+        return apiFetch<AppointmentListResult>(`/calendar/appointments${s ? `?${s}` : ''}`);
+      },
+      create: (input: CreateAppointmentInput) => apiFetch<AppointmentDto>('/calendar/appointments', { method: 'POST', body: input }),
+      update: (id: string, input: UpdateAppointmentInput) => apiFetch<AppointmentDto>(`/calendar/appointments/${id}`, { method: 'PATCH', body: input }),
+    },
+    connections: () => apiFetch<CalendarConnectionDto[]>('/calendar/connections'),
+    connect: (provider: string) => apiFetch<never>(`/calendar/connections/${provider}/connect`, { method: 'POST' }),
+    disconnect: (provider: string) => apiFetch<CalendarConnectionDto[]>(`/calendar/connections/${provider}/disconnect`, { method: 'POST' }),
   },
 
   pm: {

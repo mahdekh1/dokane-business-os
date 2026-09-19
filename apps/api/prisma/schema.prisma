@@ -617,3 +617,44 @@ model Task {
   @@index([businessId, assigneeId])
   @@map("tasks")
 }
+
+// Calendar (Task 5.4). Appointments are tenant-scoped; external sync is
+// scaffolded (CalendarConnection) but dormant until provider creds are set.
+model Appointment {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED|CONFIRMED|COMPLETED|CANCELLED|NO_SHOW
+  customerId  String?  @db.Uuid
+  assigneeId  String?  @db.Uuid // business membership id
+  location    String?
+  note        String?
+  externalId  String? // id in the synced external calendar
+  createdBy   String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([businessId, startsAt])
+  @@index([businessId, assigneeId])
+  @@map("appointments")
+}
+
+model CalendarConnection {
+  id              String    @id @default(uuid()) @db.Uuid
+  businessId      String    @db.Uuid
+  provider        String // GOOGLE | APPLE_CALDAV
+  status          String    @default("DISCONNECTED")
+  accountEmail    String?
+  accessTokenEnc  String? // encrypted at rest
+  refreshTokenEnc String? // encrypted at rest
+  caldavUrl       String?
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([businessId, provider])
+  @@map("calendar_connections")
+}

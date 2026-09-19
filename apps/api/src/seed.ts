@@ -358,6 +358,21 @@ async function seedProjects(
       })),
     });
   }
+
+  // Demo appointments (idempotent) so the Calendar schedule isn't empty.
+  if ((await prisma.appointment.count({ where: { businessId } })) === 0) {
+    const at = (days: number, hour: number): Date => {
+      const d = new Date(); d.setHours(0, 0, 0, 0);
+      return new Date(d.getTime() + days * 86_400_000 + hour * 3_600_000);
+    };
+    await prisma.appointment.createMany({
+      data: [
+        { businessId, title: 'Kickoff call — Website Revamp', startsAt: at(0, 10), endsAt: at(0, 11), status: 'CONFIRMED', assigneeId: ownerMembershipId, location: 'Video call' },
+        { businessId, title: 'Design review', startsAt: at(1, 14), endsAt: at(1, 15), status: 'SCHEDULED', assigneeId: staffMembershipId, location: 'Studio' },
+        { businessId, title: 'Client onboarding', startsAt: at(2, 9), endsAt: at(2, 10), status: 'SCHEDULED', assigneeId: ownerMembershipId },
+      ],
+    });
+  }
 }
 
 /**

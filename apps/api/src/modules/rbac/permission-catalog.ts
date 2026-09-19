@@ -57,6 +57,9 @@ export const MODULE_PERMISSIONS: PermissionDef[] = [
   { code: 'pm.tasks.create', moduleId: 'project_management', description: 'Create tasks' },
   { code: 'pm.tasks.update', moduleId: 'project_management', description: 'Edit and move tasks' },
   { code: 'pm.tasks.assign', moduleId: 'project_management', description: 'Assign tasks to team members' },
+  { code: 'calendar.appointments.view', moduleId: 'calendar', description: 'View the schedule and appointments' },
+  { code: 'calendar.appointments.manage', moduleId: 'calendar', description: 'Create and edit appointments' },
+  { code: 'calendar.connections.manage', moduleId: 'calendar', description: 'Connect and manage external calendars' },
 ];
 
 export const PLATFORM_PERMISSIONS: PermissionDef[] = [
