@@ -224,7 +224,7 @@ interface DemoOrder {
   key: string;
   channel: 'PHYSICAL' | 'ONLINE';
   status?: 'DRAFT' | 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'COMPLETED';
-  customer?: { name?: string; email?: string };
+  customer?: { name?: string; email?: string; save?: boolean };
   items: { sku: string; qty: number }[];
   /** A payment to record after creation (minor units). */
   pay?: { amount: number; method: 'CASH' | 'BIT' };
@@ -241,7 +241,7 @@ const ABC_ORDERS: DemoOrder[] = [
     items: [{ sku: 'TOTE-01', qty: 1 }, { sku: 'PIN-01', qty: 2 }], pay: { amount: 5000, method: 'CASH' } },
   { key: 'abc-3', channel: 'ONLINE', customer: { name: 'Omar Khoury', email: 'omar@example.com' },
     items: [{ sku: 'MUG-CHAR', qty: 1 }] },
-  { key: 'abc-4', channel: 'PHYSICAL', status: 'COMPLETED', customer: { name: 'Walk-in customer' },
+  { key: 'abc-4', channel: 'PHYSICAL', status: 'COMPLETED', customer: { name: 'Walk-in', save: false },
     items: [{ sku: 'GC-100', qty: 1 }], pay: { amount: 10000, method: 'BIT' } },
   { key: 'abc-5', channel: 'PHYSICAL', status: 'CONFIRMED', customer: { name: 'Studio Nazareth' },
     items: [{ sku: 'TEE-L-BK', qty: 2 }], pay: { amount: 5000, method: 'CASH' } },
@@ -295,6 +295,17 @@ async function seedOrders(
       fulfillmentStatus: spec.channel === 'ONLINE' ? undefined : spec.status,
     }, idem);
     if (spec.pay) await payments.record(ctx, order.id, { amount: spec.pay.amount, method: spec.pay.method });
+  }
+
+  // A few demo leads so the CRM pipeline isn't empty (idempotent: only if none).
+  if ((await prisma.lead.count({ where: { businessId } })) === 0) {
+    await prisma.lead.createMany({
+      data: [
+        { businessId, name: 'Galleria Boutique', email: 'hi@galleria.test', source: 'referral', value: 150000, stage: 'QUALIFIED' },
+        { businessId, name: 'Marom Events', phone: '+972 50 123 4567', source: 'instagram', value: 80000, stage: 'CONTACTED' },
+        { businessId, name: 'Tech Meetup Nazareth', email: 'organizer@meetup.test', source: 'ad', value: 40000, stage: 'NEW' },
+      ],
+    });
   }
 
   // Flush the outbox so payment.received → INCOME entries exist right after seeding.

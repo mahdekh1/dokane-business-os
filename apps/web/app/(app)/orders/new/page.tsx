@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ChannelDto, OfferingDto } from '@dokane/contracts';
+import type { ChannelDto, OfferingDto, OrderCustomerInput } from '@dokane/contracts';
 import { api, ApiError } from '../../../../src/lib/api';
 import { money, toMinor } from '../../../../src/lib/format';
+import { CustomerPicker } from '../../../../src/components/orders/customer-picker';
 
 interface Option { key: string; label: string; offeringId?: string; variantId?: string; unitPrice: number }
 interface Line extends Option { quantity: number }
@@ -15,7 +16,7 @@ export default function NewOrderPage() {
   const [channelId, setChannelId] = useState('');
   const [offerings, setOfferings] = useState<OfferingDto[]>([]);
   const [lines, setLines] = useState<Line[]>([]);
-  const [customer, setCustomer] = useState('');
+  const [customer, setCustomer] = useState<OrderCustomerInput | undefined>();
   const [discount, setDiscount] = useState('');
   const [manualStatus, setManualStatus] = useState<'CONFIRMED' | 'COMPLETED'>('COMPLETED');
   const [error, setError] = useState('');
@@ -71,7 +72,7 @@ export default function NewOrderPage() {
         channelId,
         items: lines.map((l) => ({ offeringId: l.offeringId, variantId: l.variantId, quantity: l.quantity, discount: 0 })),
         discount: discountMinor,
-        customer: customer.trim() ? { name: customer.trim() } : undefined,
+        customer,
         fulfillmentStatus: isOnline ? undefined : manualStatus,
       });
       router.push(`/orders/${order.id}`);
@@ -133,7 +134,7 @@ export default function NewOrderPage() {
 
         <div className="rounded-2xl border border-line bg-surface p-5">
           <label className="mb-1.5 block text-[13px] font-medium">Customer <span className="font-normal text-muted">(optional)</span></label>
-          <input className="h-11 w-full rounded-xl bg-field px-3 text-[14px] text-ink outline-none" placeholder="Walk-in customer" value={customer} onChange={(e) => setCustomer(e.target.value)} />
+          <CustomerPicker onChange={setCustomer} />
 
           {isOnline ? (
             <p className="mt-4 rounded-lg bg-field px-3 py-2 text-[12.5px] text-muted">Online orders start as <b className="text-ink">Pending</b> and move through the flow after placement.</p>

@@ -11,12 +11,18 @@ import type {
   ChannelDto,
   CreateBusinessInput,
   CreateCategoryInput,
+  CreateCustomerInput,
   CreateFinancialEntryInput,
+  CreateLeadInput,
   CreateOfferingInput,
   CreateOrderInput,
+  CustomerDto,
+  CustomerListResult,
   FinancialEntryDto,
   FinancialEntryListResult,
   FulfillmentStatus,
+  LeadDto,
+  LeadListResult,
   InventoryItemDto,
   InventoryListResult,
   LocationDto,
@@ -25,6 +31,8 @@ import type {
   OrderDto,
   OrderListResult,
   ReceivablesResult,
+  UpdateCustomerInput,
+  UpdateLeadInput,
   MeResponse,
   OfferingDto,
   OfferingListResult,
@@ -228,6 +236,32 @@ export const api = {
       apiFetch<FinancialEntryDto>('/accounting/entries', { method: 'POST', body: input }),
     receivables: (channelId?: string) =>
       apiFetch<ReceivablesResult>(`/accounting/receivables${channelId ? `?channelId=${channelId}` : ''}`),
+  },
+
+  customers: {
+    list: (q: Record<string, string | number | undefined> = {}) => {
+      const qs = new URLSearchParams();
+      for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+      const s = qs.toString();
+      return apiFetch<CustomerListResult>(`/customers${s ? `?${s}` : ''}`);
+    },
+    get: (id: string) => apiFetch<CustomerDto>(`/customers/${id}`),
+    create: (input: CreateCustomerInput) => apiFetch<CustomerDto>('/customers', { method: 'POST', body: input }),
+    update: (id: string, input: UpdateCustomerInput) => apiFetch<CustomerDto>(`/customers/${id}`, { method: 'PATCH', body: input }),
+  },
+
+  crm: {
+    leads: {
+      list: (q: Record<string, string | number | undefined> = {}) => {
+        const qs = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') qs.set(k, String(v));
+        const s = qs.toString();
+        return apiFetch<LeadListResult>(`/crm/leads${s ? `?${s}` : ''}`);
+      },
+      create: (input: CreateLeadInput) => apiFetch<LeadDto>('/crm/leads', { method: 'POST', body: input }),
+      update: (id: string, input: UpdateLeadInput) => apiFetch<LeadDto>(`/crm/leads/${id}`, { method: 'PATCH', body: input }),
+      convert: (id: string) => apiFetch<LeadDto>(`/crm/leads/${id}/convert`, { method: 'POST' }),
+    },
   },
 
   createBusiness: (input: CreateBusinessInput) =>

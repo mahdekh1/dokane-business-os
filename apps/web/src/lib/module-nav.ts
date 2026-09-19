@@ -122,7 +122,6 @@ export const NAV_GROUPS: NavGroup[] = [
     children: [
       { label: 'Customers', href: '/crm/customers' },
       { label: 'Leads & pipeline', href: '/crm/pipeline' },
-      { label: 'Sources', href: '/crm/sources' },
     ],
   },
   {

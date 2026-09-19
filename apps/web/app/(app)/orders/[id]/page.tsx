@@ -46,7 +46,15 @@ export default function OrderDetailPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-bold tracking-tight">Order #{order.id.slice(0, 8)}</h1>
-          <p className="mt-1 text-[13px] text-muted">{order.channelName} · {order.customerName ?? 'Walk-in customer'} · {shortWhen(order.createdAt)}</p>
+          <p className="mt-1 text-[13px] text-muted">
+            {order.channelName} ·{' '}
+            {order.customerId ? (
+              <Link href={`/crm/customers/${order.customerId}`} className="text-brand hover:underline">{order.customerName}</Link>
+            ) : (
+              order.customerName ?? 'Walk-in customer'
+            )}{' '}
+            · {shortWhen(order.createdAt)}
+          </p>
         </div>
         <div className="text-right">
           <div className="text-[22px] font-bold tabular-nums">{money(order.total, order.currency)}</div>
