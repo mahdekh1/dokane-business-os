@@ -1070,7 +1070,7 @@ contracts, subscriber on `order.placed`.
 > creates one linked customer; lead conversion links to a customer.
 **Verify:** `pnpm --filter api test crm`
 **Sync:** `be/05-crm` → PR → merge.
-- [ ] CRM + auto-link on order tested
+- [x] CRM + auto-link on order tested ✅ (2026-09-19: pulled forward with the order↔customer work. Order gains a customerName snapshot + 3-mode customer input (existing / create+link / ephemeral walk-in) + order.placed event + customerId filter; FinancialEntry gains orderId+customerId. CRM module: Lead CRUD + convert (core getOrCreateByContact), order.placed subscriber auto-registers ONLINE customers. UI: order customer-picker, Customers registry (list + detail w/ order history), Leads pipeline (kanban + convert). API suite 115/115.)
 
 ### Task 5.2 — Project Management API
 **Owner:** Claude Code · **Files:** `apps/api/src/modules/pm/*`, schema
@@ -1100,7 +1100,7 @@ status; projects list + a kanban task board.
 > via the CRM/PM contracts. RTL-ready.
 **Verify (Claude):** typecheck + web tests.
 **Sync:** `ui/05-crm-pm` → review → merge.
-- [ ] CRM + PM UIs work
+- [ ] CRM + PM UIs work (CRM UI ✅ done 2026-09-19: Customers list/detail + Leads pipeline; PM UI still pending)
 
 ### Task 5.4 — Calendar module (appointments + Google/Apple sync)
 **Owner:** Claude Code (API + UI) · **Files:** `apps/api/src/modules/calendar/*`,

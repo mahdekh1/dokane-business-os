@@ -125,7 +125,16 @@ Channels/Accounting *modules* only gate their management surfaces. API suite
 106/106. **Orders/Money UI ✅ (4.7)**: orders list + manual builder (server
 totals) + detail (two-axis, transitions, partial-payment dialog); accounting
 (3 reconciled tiles + income/expense + receivables + record-expense); dashboard
-money tiles (global/per-channel). New core **Orders** nav group. **Next**:
-Phase 5 (CRM & Project Management).
+money tiles (global/per-channel). New core **Orders** nav group.
+**Customer links + CRM ✅ (Phase 5.1, pulled forward)**: orders carry a
+`customerName` snapshot + optional `customerId` via a 3-mode customer input
+(existing / create+link / **ephemeral walk-in**, no record); orders emit
+`order.placed`; `OrderListQuery` filters by `customerId` (customer→orders).
+FinancialEntry gains `orderId`+`customerId`. **CRM module**: `Lead` CRUD +
+convert (→ core `getOrCreateByContact`), an `order.placed` subscriber that
+auto-registers ONLINE customers (dedupe delegated to core — CRM never owns
+customers). UI: order **customer picker**, **Customers** registry (list +
+detail w/ order history + outstanding), **Leads pipeline** (kanban + convert).
+API suite 115/115. **Next**: Phase 5.2 (Project Management), 5.4 (Calendar).
 Run: `docker compose up -d`, then api `pnpm --filter @dokane/api start` (:3001) +
 web `pnpm --filter @dokane/web dev` (:3000); the API needs `WEB_ORIGIN` for CORS.
